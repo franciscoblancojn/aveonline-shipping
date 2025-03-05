@@ -1,12 +1,18 @@
 # Aveonline
 
 Contributors: Francisco Blanco
+
 Tags: aveonline, shipping, colombia
+
 Requires at least: 5.0
+
 Tested up to: 5.9
-Stable tag: 1.0.0
+
+Stable tag: 3.0.0
+
 License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+
+License URI: [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
 
 It is an plugin of wordpress, for Shipping in Colombia
 
@@ -14,7 +20,7 @@ It is an plugin of wordpress, for Shipping in Colombia
 
 ### Installation
 
-1. Download .zip in repository [https://gitlab.com/franciscoblancojn/aveonline](https://gitlab.com/franciscoblancojn/aveonline)
+1. Download .zip in repository [https://github.com/franciscoblancojn/aveonline-shipping](https://github.com/franciscoblancojn/aveonline-shipping)
 2. Go to admin of site wordpress, in __Plugins -> Add New__
 3. Click in button __Upload Plugin__
 4. Click in buttom __Select File__, and Upload file
@@ -50,8 +56,8 @@ It is an plugin of wordpress, for Shipping in Colombia
 
 ## Repositories
 
-* GitLab: https://gitlab.com/franciscoblancojn/aveonline
-* GitHub: https://github.com/franciscoblancojn/aveonline
+* GitHub: https://github.com/franciscoblancojn/aveonline-shipping
+
 ## License
 This plugin is distributed under the terms of the GNU General Public License v2.0 or later.
 
