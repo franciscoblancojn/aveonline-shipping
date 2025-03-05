@@ -2,7 +2,7 @@
 if(!function_exists("github_updater_plugin_wordpress")){
     function github_updater_plugin_wordpress($config)  {
         if(is_admin()){
-            function github_updater($transient, $config) {
+            add_filter('site_transient_update_plugins', function($transient) use ($config) {
                 if (empty($transient->checked)) {
                     return $transient;
                 }
@@ -56,15 +56,9 @@ if(!function_exists("github_updater_plugin_wordpress")){
                 }
         
                 return $transient;
-            }
-            add_filter('site_transient_update_plugins', function($transient) use ($config) {
-                return github_updater($transient, $config);
             });
         
-            /**
-             * Agregar botón de actualización manual al listado de plugins
-             */
-            function github_updater_btn($links, $file,$config) {
+            add_filter('plugin_action_links_' . $config['basename'],function($links, $file) use ($config) {
                 if ($file == $config['basename']) {
                     $actualizar_url = wp_nonce_url(
                         admin_url('update.php?action=upgrade-plugin&plugin=' . $file),
@@ -74,9 +68,6 @@ if(!function_exists("github_updater_plugin_wordpress")){
                     $links[] = '<a href="' . esc_url($actualizar_url) . '" style="color: #0073aa; font-weight: bold;">Actualizar</a>';
                 }
                 return $links;
-            }
-            add_filter('plugin_action_links_' . $config['basename'],function($links, $file) use ($config) {
-                return github_updater_btn($links, $file,$config);
             }, 10, 2);
         
             // Forzar actualización de plugins
