@@ -20,7 +20,7 @@ It is an plugin of wordpress, for Shipping in Colombia
 
 ### Installation
 
-1. Download .zip [https://github.com/franciscoblancojn/aveonline-shipping/archive/refs/heads/master.zip](__CLICK_HERE__) in repository [https://github.com/franciscoblancojn/aveonline-shipping](https://github.com/franciscoblancojn/aveonline-shipping)
+1. Download .zip [__CLICK HERE__](https://github.com/franciscoblancojn/aveonline-shipping/archive/refs/heads/master.zip) in repository [https://github.com/franciscoblancojn/aveonline-shipping](https://github.com/franciscoblancojn/aveonline-shipping)
 2. Go to admin of site wordpress, in __Plugins -> Add New__
 3. Click in button __Upload Plugin__
 4. Click in buttom __Select File__, and Upload file
