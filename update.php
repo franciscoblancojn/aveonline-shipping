@@ -71,10 +71,12 @@ if(!function_exists("github_updater_plugin_wordpress")){
                             admin_url('update.php?action=upgrade-plugin&plugin=' . $file),
                             'upgrade-plugin_' . $file
                         );
+                        $plugin_slug =  basename(rtrim($config['dir'], '/'));
             
                         $links[] = '<a class="github_updater_plugin_wordpress_btn" href="' . esc_url($actualizar_url) . '" style="color: #0073aa; font-weight: bold;">Actualizar</a>
                             <style>
-                                tr:has(+ tr .github_updater_plugin_wordpress_btn) + tr a{
+                                tr.plugin-update-tr[data-slug="'.$plugin_slug.'"] a,
+                                tr.plugin-update-tr[data-slug="'.$plugin_slug.'"] a + *{
                                     display:none;
                                 }
                             </style>
