@@ -33,6 +33,24 @@ function load_AveonlineAPI()
         {
             $this->settings = $settings;
         }
+        private function getCache($key)  {
+            $calendar = IntlCalendar::createInstance(); 
+            $cache = get_option("AVSHME_".$key,[
+                "date"=>$calendar->getTime(),
+                "data"=>NULL
+            ]);
+            if(abs($cache["date"] - $calendar->getTime()) > (1000 * 60 * 30)){
+                return NULL;
+            }
+            return $cache["data"];
+        }
+        private function setCache($key,$value)  {
+            $calendar = IntlCalendar::createInstance(); 
+            update_option("AVSHME_".$key,[
+                "date"=>$calendar->getTime(),
+                "data"=>$value
+            ]);
+        }
 
         private function request2($json_data , $url)
         {
@@ -65,6 +83,30 @@ function load_AveonlineAPI()
         }
         public function request($json , $url)
         {
+            $current_url = $_SERVER['REQUEST_URI'];
+            if (
+                !(
+                    strpos($current_url, 'update_order_review') !== false 
+                    ||
+                    strpos($current_url, 'wc_aveonline_shipping') !== false 
+                    // ||
+                    // strpos($current_url, wc_get_checkout_url()) !== false
+                )
+            ){
+                return;
+            }
+            $key = $url.$json;
+            $data_cache = $this->getCache($key);
+            if($data_cache!=NULL){
+                return $data_cache;
+            }
+            AVSHME_addLogAveonline(array(
+                "type"=>"api_request",
+                "url"=>$_SERVER['REQUEST_URI'],
+                "json"=>$json,
+                "data_cache"=>$data_cache
+            ));
+
             $curl = curl_init();
             curl_setopt_array($curl, array(
                 CURLOPT_URL => $url,
@@ -94,7 +136,7 @@ function load_AveonlineAPI()
                     "send"=>json_decode($json),
                     "error"=>$error,
                 ));
-                return $this->request2($json , $url);
+                $response = $this->request2($json , $url);
             }else{
                 AVSHME_addLogAveonline(array(
                     "type"=>"api resquest",
@@ -103,8 +145,10 @@ function load_AveonlineAPI()
                     "respond_json_decode"=>json_decode($response),
                     "respond"=>$response,
                 ));
-                return json_decode($response);
+                $response =  json_decode($response);
             }
+            $this->setCache($key,$response);
+            return $response;
 
         }
         public function autenticarusuario()
