@@ -33,24 +33,6 @@ function load_AveonlineAPI()
         {
             $this->settings = $settings;
         }
-        private function getCache($key)  {
-            $calendar = IntlCalendar::createInstance(); 
-            $cache = get_option("AVSHME_".$key,[
-                "date"=>$calendar->getTime(),
-                "data"=>NULL
-            ]);
-            if(abs($cache["date"] - $calendar->getTime()) > (1000 * 60 * 30)){
-                return NULL;
-            }
-            return $cache["data"];
-        }
-        private function setCache($key,$value)  {
-            $calendar = IntlCalendar::createInstance(); 
-            update_option("AVSHME_".$key,[
-                "date"=>$calendar->getTime(),
-                "data"=>$value
-            ]);
-        }
 
         private function request2($json_data , $url)
         {
@@ -95,16 +77,39 @@ function load_AveonlineAPI()
             ){
                 return;
             }
-            $key = $url.$json;
-            $data_cache = $this->getCache($key);
+            $string = str_replace("\r", "", $json);
+            $string = str_replace("\n", "", $string);
+            $string = str_replace("\r\n", "", $string);
+            $string = str_replace(" ", "", $string);
+            $json_line=$string;
+            $string = $url.$string;
+            $string = str_replace("'", "", $string);
+            $string = str_replace('"', "", $string);
+            $string = str_replace("{", "", $string);
+            $string = str_replace("}", "", $string);
+            $string = str_replace(":", "", $string);
+            $string = str_replace(",", "", $string);
+            $string = str_replace(".", "", $string);
+            $string = str_replace("/", "", $string);
+            $string = str_replace("[", "", $string);
+            $string = str_replace("]", "", $string);
+            $string = str_replace("(", "", $string);
+            $string = str_replace(")", "", $string);
+            $key = str_replace("-", "", $string);
+            $data_cache = AVSHME_getCache($key);
+            AVSHME_addLogAveonline(array(
+                "type"=>"api_request",
+                "key"=>$key,
+                "data_cache"=>$data_cache
+            ));
             if($data_cache!=NULL){
                 return $data_cache;
             }
             AVSHME_addLogAveonline(array(
-                "type"=>"api_request",
-                "url"=>$_SERVER['REQUEST_URI'],
-                "json"=>$json,
-                "data_cache"=>$data_cache
+                "type"=>"api_request_no_cache",
+                "key"=>$key,
+                "url"=>$url,
+                "json"=>$json_line
             ));
 
             $curl = curl_init();
@@ -147,7 +152,13 @@ function load_AveonlineAPI()
                 ));
                 $response =  json_decode($response);
             }
-            $this->setCache($key,$response);
+            if(
+                $response
+                && 
+                $response->status !="error"
+            ){
+                AVSHME_setCache($key,$response);
+            }
             return $response;
 
         }
