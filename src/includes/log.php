@@ -28,7 +28,7 @@ if(AVSHME_LOG){
         if($_POST['clear-log'] == "1"){
             update_option("AVSHME_log","[]");
         }
-        var_dump(AVSHME_getCache("httpsappaveonlinecoapinalv10generarGuiaTransporteNacionalphptipocotizarDobleaccesstokeneyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9eyJzZXNzaW9uIjoxNjY1MTg0OTksImV4cCI6MTc0MTM5Mjk4MSwiYXByb2JhZG9zIjpbNjA3N119VJQ4opx63eOeuanrsWlKuBTZ2evyll7s5pDZLs9dYS0idempresa6077idagente10961origenMEDELLINANTIOQUIAdestinoMEDELLINANTIOQUIAidasumecosto1contraentrega1contraentregaPayment1valorrecaudo90000productosnameCELULARalto10largo10ancho10peso2unidades1valorDeclarado90000valorMinimo0pluginwordpress"));
+        // var_dump(AVSHME_getCache("token"));
         ?>
         <form method="post">
             <input type="hidden" name="clear-log" value="1">

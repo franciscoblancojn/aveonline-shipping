@@ -15,7 +15,7 @@ function AVSHME_getCache($key)  {
         "getTime"=>$calendar->getTime(),
         "cache"=>$cache,
     ));
-    if(abs($cache["date"] - $calendar->getTime()) > (1000 * 60 * 30)){
+    if(abs($cache["date"] - $calendar->getTime()) > (1000 * 60 * 50)){
         return NULL;
     }
     return json_decode($cache["data"][0]);
