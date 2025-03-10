@@ -28,10 +28,12 @@ if(AVSHME_LOG){
         if($_POST['clear-log'] == "1"){
             update_option("AVSHME_log","[]");
         }
+        // var_dump(AVSHME_getCache("token"));
         ?>
         <form method="post">
             <input type="hidden" name="clear-log" value="1">
             <button style="
+                cursor: pointer;
                 position: fixed;
                 bottom: 1rem;
                 right: 1rem;

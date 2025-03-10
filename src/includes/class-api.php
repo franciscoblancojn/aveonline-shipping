@@ -63,8 +63,61 @@ function load_AveonlineAPI()
             ));
             return json_decode($response);
         }
-        public function request($json , $url)
+        public function request($json , $url, $cache_key = NULL)
         {
+            $current_url = $_SERVER['REQUEST_URI'];
+            if (
+                !(
+                    strpos($current_url, 'update_order_review') !== false 
+                    ||
+                    strpos($current_url, 'wc_aveonline_shipping') !== false 
+                    // ||
+                    // strpos($current_url, wc_get_checkout_url()) !== false
+                )
+            ){
+                return;
+            }
+
+            // $string = str_replace("\r", "", $json);
+            // $string = str_replace("\n", "", $string);
+            // $string = str_replace("\r\n", "", $string);
+            // $string = str_replace(" ", "", $string);
+            // $json_line=$string;
+            // $string = $url.$string;
+            // $string = str_replace("'", "", $string);
+            // $string = str_replace('"', "", $string);
+            // $string = str_replace("{", "", $string);
+            // $string = str_replace("}", "", $string);
+            // $string = str_replace(":", "", $string);
+            // $string = str_replace(",", "", $string);
+            // $string = str_replace(".", "", $string);
+            // $string = str_replace("/", "", $string);
+            // $string = str_replace("[", "", $string);
+            // $string = str_replace("]", "", $string);
+            // $string = str_replace("(", "", $string);
+            // $string = str_replace(")", "", $string);
+            // $key_json_url = str_replace("-", "", $string);
+
+
+
+            $data_cache = NULL;
+            if($cache_key!=NULL){
+                $data_cache = AVSHME_getCache($cache_key);
+            }
+            // AVSHME_addLogAveonline(array(
+            //     "type"=>"api_request",
+            //     "cache_key"=>$cache_key,
+            //     "data_cache"=>$data_cache
+            // ));
+            if($data_cache!=NULL){
+                return $data_cache;
+            }
+            AVSHME_addLogAveonline(array(
+                "type"=>"api_request_no_cache",
+                "cache_key"=>$cache_key,
+                "url"=>$url,
+            ));
+
             $curl = curl_init();
             curl_setopt_array($curl, array(
                 CURLOPT_URL => $url,
@@ -94,7 +147,7 @@ function load_AveonlineAPI()
                     "send"=>json_decode($json),
                     "error"=>$error,
                 ));
-                return $this->request2($json , $url);
+                $response = $this->request2($json , $url);
             }else{
                 AVSHME_addLogAveonline(array(
                     "type"=>"api resquest",
@@ -103,8 +156,18 @@ function load_AveonlineAPI()
                     "respond_json_decode"=>json_decode($response),
                     "respond"=>$response,
                 ));
-                return json_decode($response);
+                $response =  json_decode($response);
             }
+            if(
+                $response
+                && 
+                $response->status !="error"
+                &&
+                $cache_key!=NULL
+            ){
+                AVSHME_setCache($cache_key,$response);
+            }
+            return $response;
 
         }
         public function autenticarusuario()
@@ -116,7 +179,7 @@ function load_AveonlineAPI()
                     "clave":"' .$this->settings['password']. '"
                 }
             ';
-            return $this->request($json_body , $this->API_URL_AUTHENTICATE);
+            return $this->request($json_body , $this->API_URL_AUTHENTICATE,'token');
         }
         public function get_token()
         {
@@ -135,7 +198,7 @@ function load_AveonlineAPI()
                     "idempresa":"' . $this->settings['select_cuenta'] . '"
                 }
             ';
-            return $this->request($json_body , $this->API_URL_AGENTE);
+            return $this->request($json_body , $this->API_URL_AGENTE,'agentes');
         }
         public function cotisar($data = array())
         {
