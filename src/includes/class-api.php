@@ -77,15 +77,38 @@ function load_AveonlineAPI()
             ){
                 return;
             }
+
+            // $string = str_replace("\r", "", $json);
+            // $string = str_replace("\n", "", $string);
+            // $string = str_replace("\r\n", "", $string);
+            // $string = str_replace(" ", "", $string);
+            // $json_line=$string;
+            // $string = $url.$string;
+            // $string = str_replace("'", "", $string);
+            // $string = str_replace('"', "", $string);
+            // $string = str_replace("{", "", $string);
+            // $string = str_replace("}", "", $string);
+            // $string = str_replace(":", "", $string);
+            // $string = str_replace(",", "", $string);
+            // $string = str_replace(".", "", $string);
+            // $string = str_replace("/", "", $string);
+            // $string = str_replace("[", "", $string);
+            // $string = str_replace("]", "", $string);
+            // $string = str_replace("(", "", $string);
+            // $string = str_replace(")", "", $string);
+            // $key_json_url = str_replace("-", "", $string);
+
+
+
             $data_cache = NULL;
             if($cache_key!=NULL){
                 $data_cache = AVSHME_getCache($cache_key);
             }
-            AVSHME_addLogAveonline(array(
-                "type"=>"api_request",
-                "cache_key"=>$cache_key,
-                "data_cache"=>$data_cache
-            ));
+            // AVSHME_addLogAveonline(array(
+            //     "type"=>"api_request",
+            //     "cache_key"=>$cache_key,
+            //     "data_cache"=>$data_cache
+            // ));
             if($data_cache!=NULL){
                 return $data_cache;
             }
