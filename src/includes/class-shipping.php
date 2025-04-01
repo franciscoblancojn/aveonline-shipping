@@ -23,7 +23,7 @@ function aveonline_shipping_method() {
                 'shipping-zones',
                 'instance-settings',
             );
-            $this->reques_config_api();
+            $this->request_config_api();
             // Load the settings API
             $this->init_settings();
             $this->init_form_fields();
@@ -31,7 +31,7 @@ function aveonline_shipping_method() {
             add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
             
         }
-        function reques_config_api()
+        function request_config_api()
         {
             $this->classUser = "";
             $this->classPassword = "";
@@ -105,7 +105,7 @@ function aveonline_shipping_method() {
         }
         //Fields for the settings page
         function init_form_fields() {
-            $this->reques_config_api();
+            $this->request_config_api();
             
             $option_cuenta = array(
                 ''  => "Seleccione Cuenta"    

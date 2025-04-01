@@ -19,7 +19,7 @@ if (!function_exists( 'is_plugin_active' ))
 
 //AVSHME_
 define("AVSHME_KEY",'AVSHME');
-define("AVSHME_LOG",false);
+define("AVSHME_LOG",true);
 define("AVSHME_BASENAME",plugin_basename(__FILE__));
 define("AVSHME_DIR",plugin_dir_path( __FILE__ ));
 define("AVSHME_URL",plugin_dir_url(__FILE__));

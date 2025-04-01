@@ -28,6 +28,7 @@ function load_AveonlineAPI()
 
 
         private $URL_UPDATE_GUIA        = 'action-update-guia.php';
+        public $settings;
 
         public function __construct($settings)
         {
@@ -112,12 +113,6 @@ function load_AveonlineAPI()
             if($data_cache!=NULL){
                 return $data_cache;
             }
-            AVSHME_addLogAveonline(array(
-                "type"=>"api_request_no_cache",
-                "cache_key"=>$cache_key,
-                "url"=>$url,
-            ));
-
             $curl = curl_init();
             curl_setopt_array($curl, array(
                 CURLOPT_URL => $url,
@@ -202,6 +197,7 @@ function load_AveonlineAPI()
         }
         public function cotisar($data = array())
         {
+            $key_cache =  'cotisar_' . md5(json_encode($data));
             $json_body = array(
                 "tipo"                  => "cotizarDoble",
                 "access"                => "",
@@ -234,7 +230,7 @@ function load_AveonlineAPI()
             )
             ->validate($data["productos"]);
             $json_body = json_encode($json_body);
-            return $this->request($json_body , $this->API_URL_QUOTE);    
+            return $this->request($json_body , $this->API_URL_QUOTE,$key_cache);    
         }
         public function AVSHME_generate_guia($data , $order)
         {
