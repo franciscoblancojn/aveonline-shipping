@@ -602,10 +602,10 @@ function aveonline_shipping_method() {
     
                     $productos[] = array(
                         "name"              => $_product->get_name(),
-                        "alto"              => $_product->get_height(),
-                        "largo"             => $_product->get_length(),
-                        "ancho"             => $_product->get_width(), 
-                        "peso"              => $_product->get_weight(), 
+                        "alto"              => floatval($_product->get_height()),
+                        "largo"             => floatval($_product->get_length()),
+                        "ancho"             => floatval($_product->get_width()), 
+                        "peso"              => floatval($_product->get_weight()), 
                         "unidades"          => floatval($valor["quantity"]), 
                         "valorDeclarado"    => floatval($_valor_declarado) * $discount, 
                     );
