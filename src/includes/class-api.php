@@ -167,13 +167,13 @@ function load_AveonlineAPI()
         }
         public function autenticarusuario()
         {
-            $json_body = '
-                {
-                    "tipo":"auth",
-                    "usuario":"' .$this->settings['user']. '",
-                    "clave":"' .$this->settings['password']. '"
-                }
-            ';
+            $json_body =json_encode(array([
+                "tipo"=>"auth",
+                "usuario"=>$this->settings['user'],
+                "clave"=>$this->settings['password'],
+                "acceso"=>"ecommerce",
+                "tiempoToken"=>"100000"
+            ]));
             return $this->request($json_body , $this->API_URL_AUTHENTICATE,'token');
         }
         public function get_token()
