@@ -133,8 +133,10 @@ function load_AveonlineAPI()
                 CURLOPT_HTTPHEADER => array(
                     "Content-Type: application/json"
                 ),
+                
             ));
             $response = curl_exec($curl);
+            // var_dump($json);
             $error = curl_error($curl);
             curl_close($curl);
 
@@ -169,13 +171,13 @@ function load_AveonlineAPI()
         }
         public function autenticarusuario()
         {
-            $json_body = json_encode(array([
+            $json_body = json_encode(array(
                 "tipo" => "auth",
                 "usuario" => $this->settings['user'],
                 "clave" => $this->settings['password'],
                 "acceso" => "ecommerce",
                 "tiempoToken" => "100000"
-            ]));
+            ));
             $key_cache =  'token_' . md5($json_body);
             return $this->request($json_body, $this->API_URL_AUTHENTICATE, $key_cache);
         }
@@ -189,11 +191,11 @@ function load_AveonlineAPI()
         }
         public function agentes()
         {
-            $json_body = json_encode(array([
+            $json_body = json_encode(array(
                 "tipo" => "listarAgentesPorEmpresa",
                 "token" => $this->get_token(),
                 "idempresa" => $this->settings['select_cuenta']
-            ]));
+            ));
             $key_cache =  'agentes_' . md5($json_body);
             return $this->request($json_body, $this->API_URL_AGENTE, $key_cache);
         }

@@ -15,9 +15,20 @@ function AVSHME_getCache($key)  {
         "getTime"=>$calendar->getTime(),
         "cache"=>$cache,
     ));
+    if($cache==NULL || $cache["data"]==NULL || $cache["data"][0]==NULL){
+        return NULL;
+    }
     if(abs($cache["date"] - $calendar->getTime()) > (1000 * 60 * 50 * 4)){
         return NULL;
     }
+    // echo "<pre>";
+    // echo json_encode(array(
+    //     "type"=>"getCache",
+    //     "key"=>$key,
+    //     "cache"=>$cache,
+    //     "data"=>$cache["data"][0],
+    // ));
+    // echo "</pre>";
     return json_decode($cache["data"][0]);
 }
 function AVSHME_setCache($key,$value)  {
