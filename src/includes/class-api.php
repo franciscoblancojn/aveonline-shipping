@@ -192,7 +192,7 @@ function load_AveonlineAPI()
         public function agentes()
         {
             $json_body = json_encode(array(
-                "tipo" => "listarAgentesPorEmpresa",
+                "tipo" => "listarAgentesPorEmpresaAuth",
                 "token" => $this->get_token(),
                 "idempresa" => $this->settings['select_cuenta']
             ));
