@@ -61,6 +61,14 @@ function AVSHME_add_JS_CSS_footer() {
         contraentrega_payment = document.getElementById('payment_method_Contraentrega')
         if(contraentrega_payment!=null && contraentrega_payment!=undefined)
             contraentrega_change(contraentrega_payment.checked)
+
+            
+        window.addEventListener('load', function() {
+            console.log("load");
+            
+            jQuery(document.body).trigger('update_checkout');
+
+        }, false);
     </script>
     <?php
     }

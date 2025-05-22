@@ -38,3 +38,8 @@ function load_script_contraentrega() {
         contraentrega_change(contraentrega_payment.checked)
 }
 //load_script_contraentrega()
+//     alert(1)
+// window.addEventListener('load', function() {
+//     alert(1)
+//     load_script_contraentrega()
+// }, false);

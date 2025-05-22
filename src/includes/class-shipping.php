@@ -13,7 +13,7 @@ function aveonline_shipping_method() {
             $this->title                = __( 'Aveonline Shipping' );
             //$this->debug = false;
 
-            $this->availability = 'including';
+            $this->availability = 'all';
             $this->countries = array(
                 'CO'  // Colombia
                 );
@@ -566,7 +566,10 @@ function aveonline_shipping_method() {
                     "type"=>"calculate_shipping",
                     "destino"=>$package,
                 ));
-                if(!is_checkout()){
+                // if ( !is_checkout() && !is_cart() ) {
+                //     return;
+                // }
+                if ( !is_checkout() ) {
                     return;
                 }
                 AVSHME_addLogAveonline(array(

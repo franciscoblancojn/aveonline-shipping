@@ -178,7 +178,7 @@ function load_AveonlineAPI()
                 "acceso" => "ecommerce",
                 "tiempoToken" => "100000"
             ));
-            $key_cache =  'token_' . md5($json_body);
+            $key_cache =  'token__' . md5($json_body);
             return $this->request($json_body, $this->API_URL_AUTHENTICATE, $key_cache);
         }
         public function get_token()
@@ -196,7 +196,7 @@ function load_AveonlineAPI()
                 "token" => $this->get_token(),
                 "idempresa" => $this->settings['select_cuenta']
             ));
-            $key_cache =  'agentes_' . md5($json_body);
+            $key_cache =  'agentes__' . md5($json_body);
             return $this->request($json_body, $this->API_URL_AGENTE, $key_cache);
         }
         public function cotisar($data = array())
