@@ -580,7 +580,9 @@ function aveonline_shipping_method() {
                 //load api
                 $api = new AveonlineAPI($this->settings);
                 //performat destination
-                $destino = AVSHME_reajuste_code_aveonline(strtoupper($package["destination"]["city"]." (".$package["destination"]["state"].")"));
+                //performat destination
+                // $destino = AVSHME_reajuste_code_aveonline(strtoupper($package["destination"]["city"]." (".$package["destination"]["state"].")"));
+                $destino = isset($package['destination']['city_code']) ? $package['destination']['city_code'] : null;
     
                 if(AVSHME_get_code_aveonline($destino) == null){
                     AVSHME_addLogAveonline(array(

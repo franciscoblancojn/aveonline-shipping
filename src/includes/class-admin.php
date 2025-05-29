@@ -12,6 +12,7 @@ require_once plugin_dir_path( __FILE__ ) . 'class-contraentrega.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-edit-product.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-edit-order.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-edit-checkout.php';
+require_once plugin_dir_path( __FILE__ ) . 'class-edit-checkout-city.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-shipping.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-recogida.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-relacion-envio.php';
