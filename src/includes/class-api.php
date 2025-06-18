@@ -67,10 +67,11 @@ function load_AveonlineAPI()
             ));
             return json_decode($response);
         }
-        public function request($json, $url, $cache_key = NULL)
+        public function request($json, $url, $cache_key = NULL,$validateUrl = false)
         {
             $current_url = $_SERVER['REQUEST_URI'];
             if (
+                $validateUrl && 
                 !(
                     strpos($current_url, 'update_order_review') !== false
                     ||
@@ -234,7 +235,7 @@ function load_AveonlineAPI()
                 )
                 ->validate($data["productos"]);
             $json_body = json_encode($json_body);
-            return $this->request($json_body, $this->API_URL_QUOTE, $key_cache);
+            return $this->request($json_body, $this->API_URL_QUOTE, $key_cache,true);
         }
         public function AVSHME_generate_guia($data, $order)
         {
@@ -326,8 +327,12 @@ function load_AveonlineAPI()
                 "envioGratis"       => $data['envioGratis'],
             );
 
-            $json_body = json_encode($json_body);
 
+            AVSHME_addLogAveonline(array(
+                "type"=>"AVSHME_generate_guia_r_json_body",
+                "destino"=>$json_body,
+            ));
+            $json_body = json_encode($json_body);
             $r = $this->request($json_body, $this->API_URL_QUOTE);
             $json_S = '{
                 "shop" : "' . get_bloginfo('name') . '",
