@@ -273,6 +273,16 @@ function load_AveonlineAPI()
                 );
                 $dscontenido .= $item->get_name() . ",";
             }
+            $telefono = $order->get_billing_phone();
+            if (empty($telefono)) {
+                $telefono = $order->get_shipping_phone(); // si existe
+            }
+            if (empty($telefono)) {
+                $telefono = get_post_meta($order->get_id(), '_billing_phone_alt', true); // un campo alterno
+            }
+            if (empty($telefono)) {
+                $telefono = get_user_meta($order->get_customer_id(), 'billing_phone', true); // del perfil de usuario
+            }
             $json_body = array(
                 "tipo"              => "generarGuia2",
                 "token"             => $this->get_token(),
@@ -298,8 +308,8 @@ function load_AveonlineAPI()
                 "dsnombre"          => $order->get_shipping_first_name(),
                 "dsnombrecompleto"  => $order->get_formatted_shipping_full_name(),
                 "dscorreop"         => $order->get_billing_email(),
-                "dstel"             => $order->get_billing_phone(),
-                "dscelular"         => $order->get_billing_phone(),
+                "dstel"             => $telefono,
+                "dscelular"         => $telefono,
 
                 "idtransportador"   => $data['idtransportador'],
 
