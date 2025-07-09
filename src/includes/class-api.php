@@ -67,11 +67,11 @@ function load_AveonlineAPI()
             ));
             return json_decode($response);
         }
-        public function request($json, $url, $cache_key = NULL,$validateUrl = false)
+        public function request($json, $url, $cache_key = NULL, $validateUrl = false)
         {
             $current_url = $_SERVER['REQUEST_URI'];
             if (
-                $validateUrl && 
+                $validateUrl &&
                 !(
                     strpos($current_url, 'update_order_review') !== false
                     ||
@@ -134,7 +134,7 @@ function load_AveonlineAPI()
                 CURLOPT_HTTPHEADER => array(
                     "Content-Type: application/json"
                 ),
-                
+
             ));
             $response = curl_exec($curl);
             // var_dump($json);
@@ -235,7 +235,7 @@ function load_AveonlineAPI()
                 )
                 ->validate($data["productos"]);
             $json_body = json_encode($json_body);
-            return $this->request($json_body, $this->API_URL_QUOTE, $key_cache,true);
+            return $this->request($json_body, $this->API_URL_QUOTE, $key_cache, true);
         }
         public function AVSHME_generate_guia($data, $order)
         {
@@ -274,14 +274,11 @@ function load_AveonlineAPI()
                 $dscontenido .= $item->get_name() . ",";
             }
             $telefono = $order->get_billing_phone();
-            if (empty($telefono)) {
-                $telefono = $order->get_shipping_phone(); // si existe
+            if (empty($telefono) || !is_string($telefono)) {
+                $telefono = $order->get_shipping_phone();
             }
-            if (empty($telefono)) {
-                $telefono = get_post_meta($order->get_id(), '_billing_phone_alt', true); // un campo alterno
-            }
-            if (empty($telefono)) {
-                $telefono = get_user_meta($order->get_customer_id(), 'billing_phone', true); // del perfil de usuario
+            if (empty($telefono) || !is_string($telefono)) {
+                $telefono = get_user_meta($order->get_customer_id(), 'billing_phone', true);
             }
             $json_body = array(
                 "tipo"              => "generarGuia2",
@@ -339,8 +336,8 @@ function load_AveonlineAPI()
 
 
             AVSHME_addLogAveonline(array(
-                "type"=>"AVSHME_generate_guia_r_json_body",
-                "destino"=>$json_body,
+                "type" => "AVSHME_generate_guia_r_json_body",
+                "destino" => $json_body,
             ));
             $json_body = json_encode($json_body);
             $r = $this->request($json_body, $this->API_URL_QUOTE);
