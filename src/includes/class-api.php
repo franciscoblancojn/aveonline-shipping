@@ -80,10 +80,6 @@ function load_AveonlineAPI()
                     // strpos($current_url, wc_get_checkout_url()) !== false
                 )
             ) {
-                AVSHME_addLogAveonline(array(
-                    "type" => "REQUEST_URI",
-                    "current_url" => $current_url,
-                ));
                 return;
             }
 
