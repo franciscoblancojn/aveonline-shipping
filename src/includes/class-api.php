@@ -114,7 +114,11 @@ function load_AveonlineAPI()
             //     "cache_key"=>$cache_key,
             //     "data_cache"=>$data_cache
             // ));
-            $DATAJSON = json_decode($json,true);
+            try {
+                $DATAJSON = json_decode($json,true);
+            } catch (\Throwable $th) {
+                $DATAJSON=[];
+            }
             if ($data_cache != NULL) {
                 if($url =="https://app.aveonline.co/api/nal/v1.0/generarGuiaTransporteNacional.php" && $DATAJSON['tipo']=='cotizarDoble' ){
                     if($data_cache->cotizaciones == NULL || count($data_cache->cotizaciones) == 0){
