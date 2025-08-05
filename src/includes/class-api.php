@@ -80,6 +80,10 @@ function load_AveonlineAPI()
                     // strpos($current_url, wc_get_checkout_url()) !== false
                 )
             ) {
+                AVSHME_addLogAveonline(array(
+                    "type" => "REQUEST_URI",
+                    "current_url" => $current_url,
+                ));
                 return;
             }
 
@@ -115,6 +119,18 @@ function load_AveonlineAPI()
             //     "data_cache"=>$data_cache
             // ));
             if ($data_cache != NULL) {
+                if($url =="https://app.aveonline.co/api/nal/v1.0/generarGuiaTransporteNacional.php" ){
+                    if($data_cache->cotizaciones == NULL || count($data_cache->cotizaciones) == 0){
+                        $data_cache = NULL;
+                    }
+                }
+            }
+            if ($data_cache != NULL) {
+                AVSHME_addLogAveonline(array(
+                    "type" => "data_cache",
+                    "data_cache" => $data_cache,
+                    "url" => $url,
+                ));
                 return $data_cache;
             }
             $curl = curl_init();
