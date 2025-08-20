@@ -29,12 +29,13 @@ function AVSHME_generate_guia($order_id){
     if(!isset($e["request"])){
         return;
     }
+    add_post_meta($order_id, 'AVSHME_generate_guia_request', json_encode($e["request"]));
     $r = $api->AVSHME_generate_guia($e["request"], $order);
     AVSHME_addLogAveonline(array(
         "type"=>"AVSHME_generate_guia_r",
         "destino"=>$r,
     ));
-    add_post_meta($order_id, 'AVSHME_generate_guia', json_encode($r), true);
+    add_post_meta($order_id, 'AVSHME_generate_guia', json_encode($r));
     if($r->status == "ok"){
         $guia = $r->resultado->guia;
         unset($guia->archivoguia);
