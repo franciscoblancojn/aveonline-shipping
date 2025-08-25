@@ -8635,6 +8635,9 @@ function AVSHME_calculate_package($table_package , $data_product){
 }
 function AVSHME_addLogAveonline($newLog)
 {
+    if(!AVSHME_LOG){
+        return;
+    }
     $log = get_option("AVSHME_log");
     if($log === false || $log == null || $log == ""){
         $log = "[]";
