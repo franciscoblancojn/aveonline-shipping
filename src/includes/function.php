@@ -8644,6 +8644,6 @@ function AVSHME_addLogAveonline($newLog)
     }
     $log = json_decode($log);
     $log[] = $newLog;
-    $log = array_slice($log, -1000,1000); 
+    $log = array_slice($log, -1 * AVSHME_LOG_COUNT,AVSHME_LOG_COUNT); 
     update_option("AVSHME_log",json_encode($log));
 }
