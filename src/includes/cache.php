@@ -4,7 +4,7 @@
 function AVSHME_getCache($key)  {
             
     $calendar = IntlCalendar::createInstance(); 
-    $cache = get_option("AVSHME_".$key,[
+    $cache = get_transient("AVSHME_".$key,[
         "date"=>$calendar->getTime(),
         "data"=>[NULL]
     ]);
@@ -38,8 +38,8 @@ function AVSHME_setCache($key,$value)  {
         "value"=>[json_encode($value)]
     ));
     $calendar = IntlCalendar::createInstance(); 
-    update_option("AVSHME_".$key,[
+    set_transient("AVSHME_".$key,[
         "date"=>$calendar->getTime(),
         "data"=>[json_encode($value)]
-    ],true);
+    ],12 * HOUR_IN_SECONDS);
 }

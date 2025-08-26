@@ -1,22 +1,25 @@
 <?php
 
-function aveonline_shipping_method() {
+function aveonline_shipping_method()
+{
     //if (class_exists( 'WC_aveonline_Shipping_Method' ) )return;
-    class WC_aveonline_Shipping_Method extends WC_Shipping_Method {
-        public function __construct( $instance_id = 0) {
+    class WC_aveonline_Shipping_Method extends WC_Shipping_Method
+    {
+        public function __construct($instance_id = 0)
+        {
             //parent::__construct( $instance_id );
-            $this->instance_id        = absint( $instance_id );
+            $this->instance_id        = absint($instance_id);
             $this->id                   = 'wc_aveonline_shipping';
-            $this->method_title         = __( 'Aveonline Shipping' );
-            $this->method_description   = __( 'Servicios especializados en logística' );
-            
-            $this->title                = __( 'Aveonline Shipping' );
+            $this->method_title         = __('Aveonline Shipping');
+            $this->method_description   = __('Servicios especializados en logística');
+
+            $this->title                = __('Aveonline Shipping');
             //$this->debug = false;
 
             $this->availability = 'all';
             $this->countries = array(
                 'CO'  // Colombia
-                );
+            );
 
             $this->supports = array(
                 'settings',
@@ -28,29 +31,28 @@ function aveonline_shipping_method() {
             $this->init_settings();
             $this->init_form_fields();
             // Save settings in admin if you have any defined
-            add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
-            
+            add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
         }
         function request_config_api()
         {
             $this->classUser = "";
             $this->classPassword = "";
             $api = new AveonlineAPI($this->settings);
-            if(isset($this->settings['user']) && isset($this->settings['password'])){
+            if (isset($this->settings['user']) && isset($this->settings['password'])) {
                 $r = $api->autenticarusuario();
-                if($r->status == 'ok'){
+                if ($r->status == 'ok') {
                     $cuentas =  $r->cuentas;
-                    for ($i=0; $i < count( $cuentas); $i++) { 
+                    for ($i = 0; $i < count($cuentas); $i++) {
                         $option_cuenta[$cuentas[$i]->usuarios[0]->id] =  $cuentas[$i]->servicio;
                     }
-                    
+
                     $this->select_cuenta  =   array(
                         'id'    => 'select_cuenta',
                         'type'  => 'select',
-                        'title' => __( 'Seleccione Cuenta'),
+                        'title' => __('Seleccione Cuenta'),
                         'options'   => $option_cuenta,
                     );
-                }else{
+                } else {
                     $this->select_cuenta  =   array(
                         'id'    => 'select_cuenta',
                         'type'  => 'text_info',
@@ -60,21 +62,21 @@ function aveonline_shipping_method() {
                     $this->classUser = "error";
                     $this->classPassword = "error";
                 }
-                if(isset($this->settings['select_cuenta'])){
+                if (isset($this->settings['select_cuenta'])) {
                     $r = $api->agentes();
-                    
-                    if($r->status == 'ok'){
+
+                    if ($r->status == 'ok') {
                         $agentes =  $r->agentes;
-                        for ($i=0; $i < count( $agentes); $i++) { 
-                            $option_agentes[$agentes[$i]->id."_".$agentes[$i]->idciudad] =  $agentes[$i]->nombre." ".$agentes[$i]->idciudad;
+                        for ($i = 0; $i < count($agentes); $i++) {
+                            $option_agentes[$agentes[$i]->id . "_" . $agentes[$i]->idciudad] =  $agentes[$i]->nombre . " " . $agentes[$i]->idciudad;
                         }
                         $this->select_agentes = array(
                             'id'    => 'select_agentes',
                             'type'  => 'select',
-                            'title' => __( 'Seleccione Agentes'),
+                            'title' => __('Seleccione Agentes'),
                             'options'   => $option_agentes,
                         );
-                    }else{
+                    } else {
                         $this->select_agentes = array(
                             'id'    => 'select_agentes',
                             'type'  => 'text_info',
@@ -82,7 +84,7 @@ function aveonline_shipping_method() {
                             'class' => 'error'
                         );
                     }
-                }else{
+                } else {
                     $this->select_agentes = array(
                         'id'    => 'select_agentes',
                         'type'  => 'text_info',
@@ -90,7 +92,7 @@ function aveonline_shipping_method() {
                         'class' => 'error'
                     );
                 }
-            }else{
+            } else {
                 $this->select_cuenta  =   array(
                     'id'    => 'select_cuenta',
                     'type'  => 'text_info',
@@ -104,14 +106,15 @@ function aveonline_shipping_method() {
             }
         }
         //Fields for the settings page
-        function init_form_fields() {
+        function init_form_fields()
+        {
             $this->request_config_api();
-            
+
             $option_cuenta = array(
-                ''  => "Seleccione Cuenta"    
+                ''  => "Seleccione Cuenta"
             );
             $option_agentes = array(
-                ''  => "Seleccione Agente"    
+                ''  => "Seleccione Agente"
             );
             $this->form_fields = array(
                 'style' => array(
@@ -121,137 +124,137 @@ function aveonline_shipping_method() {
                 'tag_Configuraciones' => array(
                     'id'    => 'tag',
                     'type'  => 'tag',
-                    'title' => __( 'Configuraciones'),
+                    'title' => __('Configuraciones'),
                 ),
                 'enabled' => array(
-                    'title' => __( 'Habilitar/Deshabilitar' ),
+                    'title' => __('Habilitar/Deshabilitar'),
                     'type' => 'checkbox',
-                    'desc_tip' => __( 'Habilitar/Deshabilitar' ),
+                    'desc_tip' => __('Habilitar/Deshabilitar'),
                     'default' => 'yes',
                 ),
                 'tag_api' => array(
                     'id'    => 'tag',
                     'type'  => 'tag',
-                    'title' => __( 'API KEY'),
+                    'title' => __('API KEY'),
                 ),
                 'user' => array(
-                    'title' => __( 'Usuario' ),
+                    'title' => __('Usuario'),
                     'type' => 'text',
-                    'desc_tip' => __( 'Registered user in Aveonline' ),
+                    'desc_tip' => __('Registered user in Aveonline'),
                     'default' => '',
                     "class"    => $this->classUser
                 ),
                 'password' => array(
-                    'title' => __( 'Contraseña' ),
+                    'title' => __('Contraseña'),
                     'type' => 'password',
-                    'desc_tip' => __( 'Password in API Aveonline' ),
+                    'desc_tip' => __('Password in API Aveonline'),
                     'default' => '',
                     "class"    => $this->classPassword
                 ),
                 'tag_Remitente' => array(
                     'id'    => 'tag',
                     'type'  => 'tag',
-                    'title' => __( 'Remitente'),
+                    'title' => __('Remitente'),
                 ),
                 'dsnitre' => array(
-                    'title' => __( 'NIT Remitente' ),
+                    'title' => __('NIT Remitente'),
                     'type' => 'text',
-                    'desc_tip' => __( 'NIT Remitente in Aveonline' ),
+                    'desc_tip' => __('NIT Remitente in Aveonline'),
                     'default' => '',
                 ),
                 'dsdirre' => array(
-                    'title' => __( 'Direccion Remitente' ),
+                    'title' => __('Direccion Remitente'),
                     'type' => 'text',
-                    'desc_tip' => __( 'Direccion Remitente in Aveonline' ),
+                    'desc_tip' => __('Direccion Remitente in Aveonline'),
                     'default' => '',
                 ),
                 'dstelre' => array(
-                    'title' => __( 'Teléfono Remitente' ),
+                    'title' => __('Teléfono Remitente'),
                     'type' => 'tel',
-                    'desc_tip' => __( 'Teléfono remitente in Aveonline' ),
+                    'desc_tip' => __('Teléfono remitente in Aveonline'),
                     'default' => '',
                 ),
                 'dscelularre' => array(
-                    'title' => __( 'Celular Remitente' ),
+                    'title' => __('Celular Remitente'),
                     'type' => 'tel',
-                    'desc_tip' => __( 'Celular remitente in Aveonline' ),
+                    'desc_tip' => __('Celular remitente in Aveonline'),
                     'default' => '',
                 ),
                 'dscorreopre' => array(
-                    'title' => __( 'Correo Remitente' ),
+                    'title' => __('Correo Remitente'),
                     'type' => 'email',
-                    'desc_tip' => __( 'Correo remitente in Aveonline' ),
+                    'desc_tip' => __('Correo remitente in Aveonline'),
                     'default' => '',
                 ),
                 'tag_cuenta' => array(
                     'id'    => 'tag',
                     'type'  => 'tag',
-                    'title' => __( 'Cuenta'),
+                    'title' => __('Cuenta'),
                 ),
                 'select_cuenta' => $this->select_cuenta,
                 'tag_agentes' => array(
                     'id'    => 'tag',
                     'type'  => 'tag',
-                    'title' => __( 'Agentes'),
+                    'title' => __('Agentes'),
                 ),
                 'select_agentes' => $this->select_agentes,
                 'tag_valorMinimo' => array(
                     'id'    => 'tag',
                     'type'  => 'tag',
-                    'title' => __( 'Valor Minimo'),
+                    'title' => __('Valor Minimo'),
                 ),
                 'valorMinimo' => array(
-                    'title' => __( 'Habilitar/Deshabilitar' ),
+                    'title' => __('Habilitar/Deshabilitar'),
                     'type' => 'checkbox',
-                    'desc_tip' => __( 'Habilitar/Deshabilitar' ),
+                    'desc_tip' => __('Habilitar/Deshabilitar'),
                     'default' => 'no',
                 ),
                 'tag_envioGratis' => array(
                     'id'    => 'tag',
                     'type'  => 'tag',
-                    'title' => __( 'Envio Gratis'),
+                    'title' => __('Envio Gratis'),
                 ),
                 'envioGratis' => array(
-                    'title' => __( 'Habilitar/Deshabilitar' ),
+                    'title' => __('Habilitar/Deshabilitar'),
                     'type' => 'checkbox',
-                    'desc_tip' => __( 'Habilitar/Deshabilitar' ),
+                    'desc_tip' => __('Habilitar/Deshabilitar'),
                     'default' => 'no',
                 ),
                 'minValueEnvioGratis' => array(
-                    'title' => __( 'Minimo acumulado en el carrito para envio Gratis' ),
+                    'title' => __('Minimo acumulado en el carrito para envio Gratis'),
                     'type' => 'number',
                     'default' => 0,
                     'custom_attributes' => array(
-                                    'step'  => 'any',
-                                    'min'   => '0'
-                                ) 
+                        'step'  => 'any',
+                        'min'   => '0'
+                    )
                 ),
                 'tag_fijarFlete' => array(
                     'id'    => 'tag',
                     'type'  => 'tag',
-                    'title' => __( 'Fijar Flete'),
+                    'title' => __('Fijar Flete'),
                 ),
                 'fijarFlete' => array(
-                    'title' => __( 'Habilitar/Deshabilitar' ),
+                    'title' => __('Habilitar/Deshabilitar'),
                     'type' => 'checkbox',
-                    'desc_tip' => __( 'Habilitar/Deshabilitar' ),
+                    'desc_tip' => __('Habilitar/Deshabilitar'),
                     'default' => 'no',
                 ),
                 'fleteFijo' => array(
-                    'title' => __( 'Flete Fijo para envios' ),
+                    'title' => __('Flete Fijo para envios'),
                     'type' => 'number',
                     'default' => 0,
                     'custom_attributes' => array(
-                                    'step'  => 'any',
-                                    'min'   => '0'
-                                ) 
+                        'step'  => 'any',
+                        'min'   => '0'
+                    )
                 ),
             );
         }
         public function isEnvioGratis($price = 0)
         {
             $minValueEnvioGratis = $this->settings['minValueEnvioGratis'];
-            if($minValueEnvioGratis == '' || $minValueEnvioGratis == null){
+            if ($minValueEnvioGratis == '' || $minValueEnvioGratis == null) {
                 $minValueEnvioGratis = -1;
             }
             return $this->settings['envioGratis'] != 'no' && $minValueEnvioGratis <= floatval($price);
@@ -259,7 +262,8 @@ function aveonline_shipping_method() {
         /**
          * Custon field tag
          */
-        public function generate_text_info_html( $key, $data ) { 
+        public function generate_text_info_html($key, $data)
+        {
             $defaults = array(
                 'class'             => '',
                 'css'               => '',
@@ -269,22 +273,23 @@ function aveonline_shipping_method() {
                 'title'             => '',
             );
 
-            $data = wp_parse_args( $data, $defaults );
+            $data = wp_parse_args($data, $defaults);
             ob_start();
-            ?>
-            <tr class="<?=$data["class"]?>">
+?>
+            <tr class="<?= $data["class"] ?>">
                 <td>
-                    <?php echo wp_kses_post( $data['title'] ); ?>
+                    <?php echo wp_kses_post($data['title']); ?>
                 </td>
                 <td></td>
             </tr>
-            <?php
+        <?php
             return ob_get_clean();
         }
         /**
          * Custon field tag
          */
-        public function generate_tag_html( $key, $data ) { 
+        public function generate_tag_html($key, $data)
+        {
             $defaults = array(
                 'class'             => 'button-secondary',
                 'css'               => '',
@@ -294,12 +299,12 @@ function aveonline_shipping_method() {
                 'title'             => '',
             );
 
-            $data = wp_parse_args( $data, $defaults );
+            $data = wp_parse_args($data, $defaults);
             ob_start();
-            ?>
+        ?>
             <tr class="tag_amazing">
                 <td>
-                    <?php echo wp_kses_post( $data['title'] ); ?>
+                    <?php echo wp_kses_post($data['title']); ?>
                 </td>
                 <td></td>
             </tr>
@@ -309,51 +314,56 @@ function aveonline_shipping_method() {
         /**
          * Custon field style
          */
-        public function generate_style_html( $key, $data ) { 
-            if($_POST["refres"] == "1"){
-                ?>
+        public function generate_style_html($key, $data)
+        {
+            if ($_POST["refres"] == "1") {
+            ?>
                 <script>
                     const refres = () => {
                         document.querySelector('[value="Save changes"]').click()
                     }
-                    window.addEventListener("load",refres)
+                    window.addEventListener("load", refres)
                 </script>
                 <style>
-                    .form-table{
-                        display:none;
+                    .form-table {
+                        display: none;
                     }
                 </style>
-                <?php
+            <?php
                 return;
-            }else{
-                ?>
+            } else {
+            ?>
                 <input type="hidden" name="refres" value="1">
-                <?php
+            <?php
             }
             ?>
             <style>
-                .tag_amazing{
+                .tag_amazing {
                     background-color: #23282d;
                     color: #fff;
                     width: 100%;
                     box-shadow: -50px 0 #23282d, 50px 0 #23282d;
                 }
-                .tag_amazing.tag_amazing *{
+
+                .tag_amazing.tag_amazing * {
                     font-size: 30px;
                     font-weight: 700;
                     color: #fff;
                     padding: 5px 0;
                 }
-                input.error,tr.error{
+
+                input.error,
+                tr.error {
                     background: #e93030;
                     color: white;
                     border: #e93030;
                     font-weight: 600;
                 }
             </style>
-            <?php
+        <?php
         }
-        public function generate_table_package_html( $key, $data ) { 
+        public function generate_table_package_html($key, $data)
+        {
             $field    = $this->plugin_id . $this->id . '_' . $key;
             $defaults = array(
                 'class'             => 'button-secondary',
@@ -364,39 +374,38 @@ function aveonline_shipping_method() {
                 'title'             => '',
             );
 
-            $data = wp_parse_args( $data, $defaults );
+            $data = wp_parse_args($data, $defaults);
             ob_start();
-            ?>
+        ?>
             <tr valign="top">
                 <th scope="row" class="titledesc">
-                    <label for="<?php echo esc_attr( $field ); ?>">
-                        <?php echo wp_kses_post( $data['title'] ); ?>
+                    <label for="<?php echo esc_attr($field); ?>">
+                        <?php echo wp_kses_post($data['title']); ?>
                     </label>
-                    <?php echo $this->get_tooltip_html( $data ); ?>
+                    <?php echo $this->get_tooltip_html($data); ?>
                 </th>
                 <td class="forminp">
                     <fieldset>
                         <legend class="screen-reader-text">
                             <span>
-                                <?php echo wp_kses_post( $data['title'] ); ?>
+                                <?php echo wp_kses_post($data['title']); ?>
                             </span>
                         </legend>
-                        <button 
-                            class="<?php echo esc_attr( $data['class'] ); ?>" 
-                            type="button" name="<?php echo esc_attr( $field ); ?>" 
-                            id="table_package_btn" 
-                            style="<?php echo esc_attr( $data['css'] ); ?>" 
-                            <?php echo $this->get_custom_attribute_html( $data ); ?>>
-                            <?php echo __('Add package');?>
+                        <button
+                            class="<?php echo esc_attr($data['class']); ?>"
+                            type="button" name="<?php echo esc_attr($field); ?>"
+                            id="table_package_btn"
+                            style="<?php echo esc_attr($data['css']); ?>"
+                            <?php echo $this->get_custom_attribute_html($data); ?>>
+                            <?php echo __('Add package'); ?>
                         </button>
-                        <?php echo $this->get_description_html( $data ); ?>
+                        <?php echo $this->get_description_html($data); ?>
                     </fieldset>
-                    <input 
-                    type="hidden"
-                    name="woocommerce_wc_aveonline_shipping_table_package" 
-                    id="woocommerce_wc_aveonline_shipping_table_package"
-                    value='<?=(isset($this->settings['table_package']))?$this->settings['table_package']:"[]";?>' 
-                    />
+                    <input
+                        type="hidden"
+                        name="woocommerce_wc_aveonline_shipping_table_package"
+                        id="woocommerce_wc_aveonline_shipping_table_package"
+                        value='<?= (isset($this->settings['table_package'])) ? $this->settings['table_package'] : "[]"; ?>' />
                 </td>
             </tr>
             <tr id="table_package">
@@ -406,16 +415,17 @@ function aveonline_shipping_method() {
                 btn = document.getElementById('table_package_btn')
                 table = document.getElementById('table_package')
                 n = 0
-                var data 
-                function add_tr(data = null){
+                var data
+
+                function add_tr(data = null) {
                     cR = `
                         type="number"
                         min="1"
                         style="width: 30%;"
                         required
-                    ` 
+                    `
                     e = document.createElement("tr");
-                    e.id=`package_${n}`
+                    e.id = `package_${n}`
                     e.style = `
                         width: 100%;
                         min-width: 700px;
@@ -459,7 +469,7 @@ function aveonline_shipping_method() {
                     `
                     table.appendChild(e)
                     d = document.getElementById(`delete_${n}`)
-                    d.onclick = function(event){
+                    d.onclick = function(event) {
                         event.preventDefault()
                         id = this.getAttribute('id_delete')
                         ele = document.getElementById(id)
@@ -474,8 +484,9 @@ function aveonline_shipping_method() {
                     change_input(h)
                     n++
                 }
-                function load_data(){
-                    if(input.value == ""){
+
+                function load_data() {
+                    if (input.value == "") {
                         input.value = "{}"
                     }
                     data = JSON.parse(input.value)
@@ -484,7 +495,8 @@ function aveonline_shipping_method() {
                     }
                 }
                 load_data()
-                function sabe_table_package(){
+
+                function sabe_table_package() {
                     data = []
                     l = document.documentElement.querySelectorAll('[id*="Length_"]')
                     w = document.documentElement.querySelectorAll('[id*="Width_"]')
@@ -498,39 +510,40 @@ function aveonline_shipping_method() {
                     }
                     input.value = JSON.stringify(data)
                 }
-                function change_input(e){
-                    e.onchange = function(){
+
+                function change_input(e) {
+                    e.onchange = function() {
                         sabe_table_package()
                     }
                 }
-                btn.onclick = function(){
+                btn.onclick = function() {
                     add_tr()
                 }
             </script>
-            <?php
+<?php
             return ob_get_clean();
         }
-        public function add_rate_request($r  ,$request, $envioGratis = false )
+        public function add_rate_request($r, $request, $envioGratis = false)
         {
             //verifit request
-            if($r->status == "ok"){
+            if ($r->status == "ok") {
                 $paymentContraentrega = new WC_Contraentrega();
                 $activeContraentrega = $paymentContraentrega->enabled == "yes";
                 //for cotizaciones
                 foreach ($r->cotizaciones as $key => $value) {
                     //verifict error
-                    if($value->numbererror=="-0-"){ 
+                    if ($value->numbererror == "-0-") {
                         AVSHME_addLogAveonline(array(
-                            "type"=>"add_rate_request",
-                            "destino"=>$value,
+                            "type" => "add_rate_request",
+                            "destino" => $value,
                         ));
                         //load title and id
                         $titleContraentrega = "";
                         $idContraentrega = "wc_contraentrega_";
-                        if( $value->contraentrega == "true"){
+                        if ($value->contraentrega == "true") {
                             $titleContraentrega = "Contraentrega ";
                             $idContraentrega .= "on";
-                        }else{
+                        } else {
                             $idContraentrega .= "off";
 
                             $request['contraentrega'] = 0;
@@ -539,11 +552,11 @@ function aveonline_shipping_method() {
 
                         $request['idtransportador'] = $value->codTransportadora;
                         $request['envioGratis'] = $envioGratis ? 1 : 0;
-                        if($activeContraentrega == true || $value->contraentrega != "true"){
-                            $t = $this->settings['fijarFlete'] == 'yes' ? floatval($this->settings['fleteFijo']): $value->total;
+                        if ($activeContraentrega == true || $value->contraentrega != "true") {
+                            $t = $this->settings['fijarFlete'] == 'yes' ? floatval($this->settings['fleteFijo']) : $value->total;
                             $shipping_rate = array(
                                 'id'      => $value->codTransportadora . $idContraentrega,
-                                'label'   => $titleContraentrega.$value->nombreTransportadora,
+                                'label'   => $titleContraentrega . $value->nombreTransportadora,
                                 'cost'    => $envioGratis ? 0 : $t,
                                 //add meta dat
                                 'meta_data' => array(
@@ -551,79 +564,80 @@ function aveonline_shipping_method() {
                                 ),
                             );
                             AVSHME_addLogAveonline(array(
-                                "type"=>"shipping_rate",
-                                "destino"=>$shipping_rate,
+                                "type" => "shipping_rate",
+                                "destino" => $shipping_rate,
                             ));
-                            $this->add_rate( $shipping_rate);
+                            $this->add_rate($shipping_rate);
                         }
                     }
                 }
             }
         }
-        public function calculate_shipping( $package = array()) {
+        public function calculate_shipping($package = array())
+        {
             try {
                 AVSHME_addLogAveonline(array(
-                    "type"=>"calculate_shipping",
-                    "destino"=>$package,
+                    "type" => "calculate_shipping",
+                    "destino" => $package,
                 ));
                 // if ( !is_checkout() && !is_cart() ) {
                 //     return;
                 // }
-                if ( !is_checkout() ) {
+                if (!is_checkout()) {
                     return;
                 }
                 AVSHME_addLogAveonline(array(
-                    "type"=>"is_checkout",
-                    "destino"=>$package,
+                    "type" => "is_checkout",
+                    "destino" => $package,
                 ));
-                wp_enqueue_script( 'jquery' );
+                wp_enqueue_script('jquery');
                 //load api
                 $api = new AveonlineAPI($this->settings);
                 //performat destination
-                $destino = AVSHME_reajuste_code_aveonline(strtoupper($package["destination"]["city"]." (".$package["destination"]["state"].")"));
-    
-                if(AVSHME_get_code_aveonline($destino) == null){
+                $destino = AVSHME_reajuste_code_aveonline(strtoupper($package["destination"]["city"] . " (" . $package["destination"]["state"] . ")"));
+
+                if (AVSHME_get_code_aveonline($destino) == null) {
                     AVSHME_addLogAveonline(array(
-                        "type"=>"error destino",
-                        "destino"=>$destino,
+                        "type" => "error destino",
+                        "destino" => $destino,
                     ));
                     throw "destino Invalido";
                 };
                 $productos = [];
                 //recorre products
                 foreach ($package["contents"] as $clave => $valor) {
-                    if($valor['variation_id']!=0){
+                    if ($valor['variation_id'] != 0) {
                         $valor["product_id"] = $valor['variation_id'];
                     }
                     $_product           = wc_get_product($valor["product_id"]);
-                    $_valor_declarado 	= get_post_meta($valor["product_id"],'_custom_valor_declarado' , true);
-                    if(0==floatval($_valor_declarado)){
+                    $_valor_declarado     = get_post_meta($valor["product_id"], '_custom_valor_declarado', true);
+                    if (0 == floatval($_valor_declarado)) {
                         $_valor_declarado = $_product->get_price();
                     }
-    
+
                     $discount = $valor['line_total'] / $valor['line_subtotal'];
-    
+
                     $productos[] = array(
                         "name"              => $_product->get_name(),
                         "alto"              => floatval($_product->get_height()),
                         "largo"             => floatval($_product->get_length()),
-                        "ancho"             => floatval($_product->get_width()), 
-                        "peso"              => floatval($_product->get_weight()), 
-                        "unidades"          => floatval($valor["quantity"]), 
-                        "valorDeclarado"    => floatval($_valor_declarado) * $discount, 
+                        "ancho"             => floatval($_product->get_width()),
+                        "peso"              => floatval($_product->get_weight()),
+                        "unidades"          => floatval($valor["quantity"]),
+                        "valorDeclarado"    => floatval($_valor_declarado) * $discount,
                     );
                 }
                 $contraentregaPayment = 0;
                 $gateways = WC()->payment_gateways->get_available_payment_gateways();
-                if( $gateways ) {
-                    foreach( $gateways as $gateway ) {
-                        if( $gateway->enabled == 'yes' && $gateway->title == 'Contraentrega Aveonline') {
+                if ($gateways) {
+                    foreach ($gateways as $gateway) {
+                        if ($gateway->enabled == 'yes' && $gateway->title == 'Contraentrega Aveonline') {
                             $contraentregaPayment = 1;
                         }
                     }
                 }
                 $envioGratis = $this->isEnvioGratis($package['contents_cost']);
-    
+
                 //generate request
                 $request = array(
                     "token"                 => $api->get_token(),
@@ -634,33 +648,34 @@ function aveonline_shipping_method() {
                     "idasumecosto"          => 1,
                     "productos"             => $productos,
                     "envioGratis"           => $envioGratis,
-                    
+
                 );
                 AVSHME_addLogAveonline(array(
-                    "type"=>"resquest pre cotizar",
-                    "request"=>$request,
+                    "type" => "resquest pre cotizar",
+                    "request" => $request,
                 ));
                 //requeste api
                 $r = $api->cotisar($request);
                 //add rates
-                $this->add_rate_request($r , $request,$envioGratis);
+                $this->add_rate_request($r, $request, $envioGratis);
             } catch (\Throwable $th) {
                 AVSHME_addLogAveonline(array(
-                    "type"=>"error_cotizar",
-                    "message"=>$th->getMessage(),
-                    "th"=>$th,
+                    "type" => "error_cotizar",
+                    "message" => $th->getMessage(),
+                    "th" => $th,
                 ));
                 wc_add_notice(__($th->getMessage(), 'woocommerce'), 'error');
             }
         }
     }
-    
+
     //add your shipping method to WooCommers list of Shipping methods
 }
-add_action( 'woocommerce_shipping_init', 'aveonline_shipping_method' );
+add_action('woocommerce_shipping_init', 'aveonline_shipping_method');
 
-function AVSHME_add_aveonline_shipping_method( $methods ) {
+function AVSHME_add_aveonline_shipping_method($methods)
+{
     $methods['wc_aveonline_shipping'] = 'WC_aveonline_Shipping_Method';
     return $methods;
 }
-add_filter( 'woocommerce_shipping_methods', 'AVSHME_add_aveonline_shipping_method' );
+add_filter('woocommerce_shipping_methods', 'AVSHME_add_aveonline_shipping_method');

@@ -46,7 +46,7 @@ if(AVSHME_LOG){
             ">Borrar Log</button>
         </form>
         <h1>
-            Solo se guardan las 100 peticiones
+            Solo se guardan las <?=AVSHME_LOG_COUNT?> peticiones
         </h1>
         <script>
             const json_log = <?=get_option("AVSHME_log")?>;
