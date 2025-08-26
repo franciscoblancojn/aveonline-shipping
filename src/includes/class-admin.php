@@ -5,6 +5,7 @@ require_once plugin_dir_path( __FILE__ ) . 'crud_options.php';
 require_once plugin_dir_path( __FILE__ ) . 'function.php';
 require_once plugin_dir_path( __FILE__ ) . 'log.php';
 require_once plugin_dir_path( __FILE__ ) . 'cache.php';
+require_once plugin_dir_path( __FILE__ ) . 'validate-shippind-active.php';
 require_once plugin_dir_path( __FILE__ ) . 'hook.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-api.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-change-order.php';

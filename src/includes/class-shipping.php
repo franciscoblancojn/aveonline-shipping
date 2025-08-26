@@ -611,9 +611,19 @@ function aveonline_shipping_method()
                     }
                     $_product           = wc_get_product($valor["product_id"]);
                     $_valor_declarado     = get_post_meta($valor["product_id"], '_custom_valor_declarado', true);
-                    if (0 == floatval($_valor_declarado)) {
-                        $_valor_declarado = $_product->get_price();
+                    $_valor_declarado     =  floatval($_valor_declarado);
+                    $_valor_declarado_old     =  ($_valor_declarado);
+                    if (0 == ($_valor_declarado)) {
+                        // wc_add_notice(__('El valor declarado se asignó automáticamente usando el precio del producto.'), 'notice');
+                        $_valor_declarado = $_product->get_sale_price() ? $_product->get_sale_price() : $_product->get_regular_price();
                     }
+                    if ($_valor_declarado < 10000) {
+                        $_valor_declarado = 10000;
+                        // wc_add_notice(__('El valor declarado no puede ser menor a 10.000. Se ha ajustado automáticamente.'), 'notice');
+                    }
+                    // if($_valor_declarado_old != $_valor_declarado){
+                    //     update_post_meta($valor["product_id"], '_custom_valor_declarado', esc_attr($_valor_declarado));
+                    // }
 
                     $discount = $valor['line_total'] / $valor['line_subtotal'];
 
