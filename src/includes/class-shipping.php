@@ -601,7 +601,7 @@ function aveonline_shipping_method()
                         "type" => "error destino",
                         "destino" => $destino,
                     ));
-                    throw "destino Invalido";
+                    return;
                 };
                 $productos = [];
                 //recorre products
