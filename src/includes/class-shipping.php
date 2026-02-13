@@ -618,7 +618,7 @@ function aveonline_shipping_method()
                     //     update_post_meta($valor["product_id"], '_custom_valor_declarado', esc_attr($_valor_declarado));
                     // }
 
-                    $discount = $valor['line_subtotal'] == 0 ? 0 : $valor['line_total'] / $valor['line_subtotal'];
+                    $discount = $valor['line_subtotal'] == 0 ? 1 : $valor['line_total'] / $valor['line_subtotal'];
 
                     $productos[] = array(
                         "name"              => $_product->get_name(),
