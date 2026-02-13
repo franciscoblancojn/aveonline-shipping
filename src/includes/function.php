@@ -1,35 +1,38 @@
 <?php
-function AVSHME_get_settings_aveonline(){
+function AVSHME_get_settings_aveonline()
+{
     return (WC()->shipping->load_shipping_methods()["wc_aveonline_shipping"]->settings);
 }
-function AVSHME_reajuste_code_aveonline($e){
+function AVSHME_reajuste_code_aveonline($e)
+{
     //casos especiales
     $casos_especiales = array(
-        "BOGOTá D.C (CUN)"              =>"BOGOTA(CUNDINAMARCA)",
-        "CARTAGENA (BOL)"               =>"CARTAGENA DE INDIAS(BOLIVAR)",
-        "PUERTO RICO - TIQUISIO (BOL)"  =>"PUERTO RICO(BOLIVAR)",
-        "SAN ESTANISLAO (BOL)"          =>"SAN ESTANISLAO ARENAL(BOLIVAR)",
-        "LOPEZ DE MICAY (CAU)"          =>"LOPEZ(CAUCA)",
-        "PAISPAMBA SOTARA (CAU)"        =>"PAISPAMBA(CAUCA)",
-        "VILLA RICA (CAU)"              =>"VILLARICA(CAUCA)",
-        "ARMENIA MANTEQUILLA (ANT)"     =>"ARMENIA(ANTIOQUIA)",
-        "CAROLINA DEL PRINCIPE (ANT)"   =>"CAROLINA(ANTIOQUIA)",
-        "EL PEñOL (ANT)"                =>"El PENOL(ANTIOQUIA)",
-        "JARDIN CACERES (ANT)"          =>"CACERES(ANTIOQUIA)",
-        "JARDIN SUROESTE (ANT)"         =>"EL JARDIN(ANTIOQUIA)",
-        "YONDO CASABE (ANT)"            =>"YONDO(ANTIOQUIA)",
-        "LA ESMERALDA (ARU)"            =>"LA ESMERALDA (JUJUA)(ARAUCA)",
-        "MOLINEROS (ATL)"               =>"MOLINERO(ATLANTICO)",
-        "BOJAYA (CHOC)"                 =>"LA LOMA DE BOJAYA(CHOCO)",
-        "SAN BERNARDO (NOR)"            =>"SAN BERNARDO DE BATA(NORTE DE SANTANDER)",
-        "TOLU (SUC)"                    =>"SANTIAGO DE TOLU(SUCRE)",
-        "VILLA RICA (TOL)"              =>"VILLARRICA(TOLIMA)",
-        "BUGA LA GRANDE (VAC)"          =>"BUGALAGRANDE(VALLE DEL CAUCA)",
-        "EL PATIA (CAU)"                =>"PATIA(CAUCA)",
-        "CODAZZI (CES)"                 =>"AGUSTIN CODAZZI(CESAR)",
-        "ALTO BAUDO (CHOC)"             =>"SAN MIGUEL DE BAUDO(CHOCO)",
-        "LA YE (COR)"                   =>"GUAYABAL LA YE(CORDOBA)",
-        "PURISIMA (COR)"                =>"PURISIMA DE LA CONCEPCION(CORDOBA)",  "LA VICTORIA (AMZ)" => "NO APLICA",
+        "BOGOTá D.C (CUN)"              => "BOGOTA(CUNDINAMARCA)",
+        "CARTAGENA (BOL)"               => "CARTAGENA DE INDIAS(BOLIVAR)",
+        "PUERTO RICO - TIQUISIO (BOL)"  => "PUERTO RICO(BOLIVAR)",
+        "SAN ESTANISLAO (BOL)"          => "SAN ESTANISLAO ARENAL(BOLIVAR)",
+        "LOPEZ DE MICAY (CAU)"          => "LOPEZ(CAUCA)",
+        "PAISPAMBA SOTARA (CAU)"        => "PAISPAMBA(CAUCA)",
+        "VILLA RICA (CAU)"              => "VILLARICA(CAUCA)",
+        "ARMENIA MANTEQUILLA (ANT)"     => "ARMENIA(ANTIOQUIA)",
+        "CAROLINA DEL PRINCIPE (ANT)"   => "CAROLINA(ANTIOQUIA)",
+        "EL PEñOL (ANT)"                => "El PENOL(ANTIOQUIA)",
+        "JARDIN CACERES (ANT)"          => "CACERES(ANTIOQUIA)",
+        "JARDIN SUROESTE (ANT)"         => "EL JARDIN(ANTIOQUIA)",
+        "YONDO CASABE (ANT)"            => "YONDO(ANTIOQUIA)",
+        "LA ESMERALDA (ARU)"            => "LA ESMERALDA (JUJUA)(ARAUCA)",
+        "MOLINEROS (ATL)"               => "MOLINERO(ATLANTICO)",
+        "BOJAYA (CHOC)"                 => "LA LOMA DE BOJAYA(CHOCO)",
+        "SAN BERNARDO (NOR)"            => "SAN BERNARDO DE BATA(NORTE DE SANTANDER)",
+        "TOLU (SUC)"                    => "SANTIAGO DE TOLU(SUCRE)",
+        "VILLA RICA (TOL)"              => "VILLARRICA(TOLIMA)",
+        "BUGA LA GRANDE (VAC)"          => "BUGALAGRANDE(VALLE DEL CAUCA)",
+        "EL PATIA (CAU)"                => "PATIA(CAUCA)",
+        "CODAZZI (CES)"                 => "AGUSTIN CODAZZI(CESAR)",
+        "ALTO BAUDO (CHOC)"             => "SAN MIGUEL DE BAUDO(CHOCO)",
+        "LA YE (COR)"                   => "GUAYABAL LA YE(CORDOBA)",
+        "PURISIMA (COR)"                => "PURISIMA DE LA CONCEPCION(CORDOBA)",
+        "LA VICTORIA (AMZ)" => "NO APLICA",
         "MIRITI PARANA (AMZ)"           => "NO APLICA",
         "SANTA ISABELL (ANT)"           => "NO APLICA",
         "GUICAN (BOY)"                  => "NO APLICA",
@@ -87,41 +90,41 @@ function AVSHME_reajuste_code_aveonline($e){
         "PAPANAUA (VAU)"                => "NO APLICA",
         "TIO BARBAS (VAU)"              => "NO APLICA",
     );
-    $e = str_replace(array_keys($casos_especiales) , array_values($casos_especiales) , $e);
+    $e = str_replace(array_keys($casos_especiales), array_values($casos_especiales), $e);
 
     //carater especial
     $carater_especial = array(
-        "ñ"=>"N",
-        "Ñ"=>"N",
-        "à"=>"A",
-        "á"=>"A",
-        "À"=>"A",
-        "Á"=>"A",
-        "è"=>"E",
-        "é"=>"E",
-        "È"=>"E",
-        "É"=>"E",
-        "ì"=>"I",
-        "í"=>"I",
-        "Ì"=>"I",
-        "Í"=>"I",
-        "ò"=>"O",
-        "ó"=>"O",
-        "Ò"=>"O",
-        "Ó"=>"O",
-        "ù"=>"U",
-        "ú"=>"U",
-        "Ù"=>"U",
-        "Ú"=>"U",
+        "ñ" => "N",
+        "Ñ" => "N",
+        "à" => "A",
+        "á" => "A",
+        "À" => "A",
+        "Á" => "A",
+        "è" => "E",
+        "é" => "E",
+        "È" => "E",
+        "É" => "E",
+        "ì" => "I",
+        "í" => "I",
+        "Ì" => "I",
+        "Í" => "I",
+        "ò" => "O",
+        "ó" => "O",
+        "Ò" => "O",
+        "Ó" => "O",
+        "ù" => "U",
+        "ú" => "U",
+        "Ù" => "U",
+        "Ú" => "U",
         //""=>"",
     );
-    $e = str_replace(array_keys($carater_especial) , array_values($carater_especial) , $e);
+    $e = str_replace(array_keys($carater_especial), array_values($carater_especial), $e);
 
     //codificacion
     $code_r = array(
-        " ("    =>  "(",    
+        " ("    =>  "(",
         "(ANT)"   =>  "(ANTIOQUIA)",
-        "(AMZ)"   =>  "(AMAZONAS)", 
+        "(AMZ)"   =>  "(AMAZONAS)",
         "(ARU)"   =>  "(ARAUCA)",
         "(ATL)"   =>  "(ATLANTICO)",
         "(BOL)"   =>  "(BOLIVAR)",
@@ -152,11 +155,12 @@ function AVSHME_reajuste_code_aveonline($e){
         "(VAU)"   =>  "(VAUPES)",
         "(VIC)"   =>  "(VICHADA)",
     );
-    $e = str_replace(array_keys($code_r) , array_values($code_r) , $e);
+    $e = str_replace(array_keys($code_r), array_values($code_r), $e);
 
     return $e;
 }
-function AVSHME_get_code_aveonline($e){
+function AVSHME_get_code_aveonline($e)
+{
     $codes = array(
         "20 DE JULIO(NARINO)",
         "ABASTICOS(CUNDINAMARCA)",
@@ -8601,49 +8605,65 @@ function AVSHME_get_code_aveonline($e){
         "ZUNGO EMBARCADERO - PUEBLO NUEVO(ANTIOQUIA)",
     );
     //$e = $this->reajuste_code($e);
-    return(in_array($e,$codes))?$e:null;
+    return (in_array($e, $codes)) ? $e : null;
 }
 
-function AVSHME_calculate_package($table_package , $data_product){
+function AVSHME_calculate_package($table_package, $data_product)
+{
     $volumen_total = 0;
     //calcular volumen total de productos
-    for ($j=0; $j < count($data_product); $j++) { 
-        $volumen_aux = $data_product[$j]["length"]*$data_product[$j]["width"]*$data_product[$j]["height"];
-        $volumen_aux = pow($volumen_aux, 1/3);
+    for ($j = 0; $j < count($data_product); $j++) {
+        $volumen_aux = $data_product[$j]["length"] * $data_product[$j]["width"] * $data_product[$j]["height"];
+        $volumen_aux = pow($volumen_aux, 1 / 3);
         $volumen_total += $volumen_aux * $data_product[$j]['quantity'];
     }
     //calcular numero de empaques por cajas 
-    for ($i=0; $i < count($table_package); $i++) { 
+    for ($i = 0; $i < count($table_package); $i++) {
         $volumen_max = $table_package[$i]->length * $table_package[$i]->width * $table_package[$i]->height;
-        $volumen_max = pow($volumen_max, 1/3);
-        
+        $volumen_max = pow($volumen_max, 1 / 3);
+
         $table_package[$i]->volumen_max = $volumen_max;
         $table_package[$i]->numeroPaquetes = ceil($volumen_total / $volumen_max);
     }
     $paquete_final = null;
-    for ($i=0; $i < count($table_package); $i++) { 
-        if($paquete_final == null){
+    for ($i = 0; $i < count($table_package); $i++) {
+        if ($paquete_final == null) {
             $paquete_final = $table_package[$i];
-        }elseif ($table_package[$i]->numeroPaquetes < $paquete_final->numeroPaquetes){
+        } elseif ($table_package[$i]->numeroPaquetes < $paquete_final->numeroPaquetes) {
             $paquete_final = $table_package[$i];
-        }elseif ( $table_package[$i]->numeroPaquetes == $paquete_final->numeroPaquetes &&
-            $table_package[$i]->volumen_max < $paquete_final->volumen_max) {
+        } elseif (
+            $table_package[$i]->numeroPaquetes == $paquete_final->numeroPaquetes &&
+            $table_package[$i]->volumen_max < $paquete_final->volumen_max
+        ) {
             $paquete_final = $table_package[$i];
         }
     }
     return $paquete_final;
 }
-function AVSHME_addLogAveonline($newLog)
+
+
+function AVSHME_getLogAveonline()
 {
-    if(!AVSHME_LOG){
-        return;
+    if (!AVSHME_LOG) {
+        return [];
     }
-    $log = get_option("AVSHME_log");
-    if($log === false || $log == null || $log == ""){
+    $log = get_option("AVSHME_log","[]");
+    if ($log === false || $log == null || $log == "") {
         $log = "[]";
     }
-    $log = json_decode($log);
-    $log[] = $newLog;
-    $log = array_slice($log, -1 * AVSHME_LOG_COUNT,AVSHME_LOG_COUNT); 
-    update_option("AVSHME_log",json_encode($log));
+    $log = json_decode($log,true);
+    return $log;
+}
+
+function AVSHME_addLogAveonline($newLog)
+{
+    if (!AVSHME_LOG) {
+        return;
+    }
+    $type = str_replace(" ","_",strtoupper($newLog['type'] ?? "NO_TIPE"));
+    $log = AVSHME_getLogAveonline();
+    $log[$type]??=[];
+    $log[$type][] = $newLog;
+    $log[$type] = array_slice($log[$type], -1 * AVSHME_LOG_COUNT, AVSHME_LOG_COUNT);
+    update_option("AVSHME_log", json_encode($log));
 }

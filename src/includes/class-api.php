@@ -109,16 +109,12 @@ function load_AveonlineAPI()
             if ($cache_key != NULL) {
                 $data_cache = AVSHME_getCache($cache_key);
             }
-            // AVSHME_addLogAveonline(array(
-            //     "type"=>"api_request",
-            //     "cache_key"=>$cache_key,
-            //     "data_cache"=>$data_cache
-            // ));
             try {
                 $DATAJSON = json_decode($json,true);
             } catch (\Throwable $th) {
                 $DATAJSON=[];
             }
+            $TYPE = $DATAJSON['tipo'];
             if ($data_cache != NULL) {
                 if($url =="https://app.aveonline.co/api/nal/v1.0/generarGuiaTransporteNacional.php" && $DATAJSON['tipo']=='cotizarDoble' ){
                     if($data_cache->cotizaciones == NULL || count($data_cache->cotizaciones) == 0){
@@ -128,7 +124,7 @@ function load_AveonlineAPI()
             }
             if ($data_cache != NULL) {
                 AVSHME_addLogAveonline(array(
-                    "type" => "data_cache",
+                    "type" => $TYPE ?? "data_cache",
                     "data_cache" => $data_cache,
                     "url" => $url,
                 ));
@@ -160,7 +156,7 @@ function load_AveonlineAPI()
 
             if ($response == false) {
                 AVSHME_addLogAveonline(array(
-                    "type" => "api resquest error",
+                    "type" => $TYPE ?? "api resquest error",
                     "url" => $url,
                     "send" => json_decode($json),
                     "error" => $error,
@@ -168,7 +164,7 @@ function load_AveonlineAPI()
                 $response = $this->request2($json, $url);
             } else {
                 AVSHME_addLogAveonline(array(
-                    "type" => "api resquest",
+                    "type" => $TYPE ?? "api resquest",
                     "url" => $url,
                     "send" => json_decode($json),
                     "respond_json_decode" => json_decode($response),
@@ -236,10 +232,6 @@ function load_AveonlineAPI()
                 "valorMinimo"           => ($this->settings['valorMinimo'] == "yes") ? 1 : 0,
                 "plugin"                => "wordpress",
             );
-            AVSHME_addLogAveonline(array(
-                "type" => "api_cotisar",
-                "json_body" => $json_body
-            ));
             AVSHME_Validator()
                 ->isArray(
                     AVSHME_Validator()
@@ -352,10 +344,6 @@ function load_AveonlineAPI()
             );
 
 
-            AVSHME_addLogAveonline(array(
-                "type" => "AVSHME_generate_guia_r_json_body",
-                "destino" => $json_body,
-            ));
             $json_body = json_encode($json_body);
             $r = $this->request($json_body, $this->API_URL_QUOTE);
             $json_S = '{

@@ -576,19 +576,12 @@ function aveonline_shipping_method()
         public function calculate_shipping($package = array())
         {
             try {
-                AVSHME_addLogAveonline(array(
-                    "type" => "calculate_shipping",
-                    "destino" => $package,
-                ));
-                // if ( !is_checkout() && !is_cart() ) {
-                //     return;
-                // }
                 if (!is_checkout()) {
                     return;
                 }
                 AVSHME_addLogAveonline(array(
-                    "type" => "is_checkout",
-                    "destino" => $package,
+                    "type" => "SHIPPING_PACKAGE",
+                    "package" => $package,
                 ));
                 wp_enqueue_script('jquery');
                 //load api
@@ -598,7 +591,7 @@ function aveonline_shipping_method()
 
                 if (AVSHME_get_code_aveonline($destino) == null) {
                     AVSHME_addLogAveonline(array(
-                        "type" => "error destino",
+                        "type" => "ERROR_DESTINO",
                         "destino" => $destino,
                     ));
                     return;
@@ -625,7 +618,7 @@ function aveonline_shipping_method()
                     //     update_post_meta($valor["product_id"], '_custom_valor_declarado', esc_attr($_valor_declarado));
                     // }
 
-                    $discount = $valor['line_total'] / $valor['line_subtotal'];
+                    $discount = $valor['line_subtotal'] == 0 ? 0 : $valor['line_total'] / $valor['line_subtotal'];
 
                     $productos[] = array(
                         "name"              => $_product->get_name(),
