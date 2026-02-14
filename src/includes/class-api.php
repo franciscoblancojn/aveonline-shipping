@@ -251,6 +251,13 @@ function load_AveonlineAPI()
             $order_id = $order->get_id();
             $productos = [];
             $dscontenido = "";
+            $id_products_ignore = [];
+            foreach ($order->get_items() as $item_id => $item) {
+                $product_id         = $item->get_product_id();
+                $id_products_ignore_by_product     = get_post_meta($product_id, '_product_group_exclude', true);
+                $id_products_ignore_by_product = explode(",","$id_products_ignore_by_product");
+                $id_products_ignore = array_merge($id_products_ignore, $id_products_ignore_by_product);
+            }
             foreach ($order->get_items() as $item_id => $item) {
                 $product_id         = $item->get_product_id();
                 $variation_id       = $item->get_variation_id();
@@ -260,6 +267,10 @@ function load_AveonlineAPI()
                 if ($variation_id != 0) {
                     $product_id = $variation_id;
                 }
+                if(in_array($product_id,$id_products_ignore)){
+                    continue;
+                }
+
                 $_product           = wc_get_product($product_id);
 
                 $_valor_declarado     = get_post_meta($product_id, '_custom_valor_declarado', true);
@@ -267,7 +278,7 @@ function load_AveonlineAPI()
                     $_valor_declarado = $_product->get_price();
                 }
 
-                $discount = $total / $subtotal;
+                $discount =  $subtotal ==0 ? 1 : $total / $subtotal;
 
                 $productos[] = array(
                     "alto"              => $_product->get_height(),
