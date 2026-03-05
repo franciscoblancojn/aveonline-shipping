@@ -33,12 +33,25 @@ function aveonline_shipping_method()
             // Save settings in admin if you have any defined
             add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
         }
+        public function process_admin_options()
+        {
+            parent::process_admin_options();
+
+            $this->init_settings();
+
+            $api = new AveonlineAPI($this->settings);
+
+            $api->clearAuth();
+            $api->clearAgentes();
+        }
         function request_config_api()
         {
             $this->classUser = "";
             $this->classPassword = "";
             $api = new AveonlineAPI($this->settings);
             if (isset($this->settings['user']) && isset($this->settings['password'])) {
+                // $api->clearAuth();
+                // $api->clearAgentes();
                 $r = $api->autenticarusuario();
                 if ($r->status == 'ok') {
                     $cuentas =  $r->cuentas;
@@ -520,7 +533,7 @@ function aveonline_shipping_method()
                     add_tr()
                 }
             </script>
-<?php
+            <?php
             return ob_get_clean();
         }
         public function add_rate_request($r, $request, $envioGratis = false)

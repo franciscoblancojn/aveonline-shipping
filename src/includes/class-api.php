@@ -26,7 +26,6 @@ function load_AveonlineAPI()
         private $API_URL_CITY           = "https://app.aveonline.co/api/box/v1.0/ciudad.php";
         private $API_URL_QUOTE          = "https://app.aveonline.co/api/nal/v1.0/generarGuiaTransporteNacional.php";
         private $API_URL_UPDATE_GUIA    = "https://app.aveonline.co/api/nal/v1.0/plugins/wordpress.php";
-        private $APY_URL_ST             = "https://apiave.startscoinc.com/" . ((AVSHME_LOG) ? "dev" : "app") . "/";
 
 
         private $URL_UPDATE_GUIA        = 'action-update-guia.php';
@@ -37,6 +36,151 @@ function load_AveonlineAPI()
             $this->settings = $settings;
         }
 
+        private $KEY_AUTH = AVSHME_KEY . "_AUTH_SAVE";
+        private $TIME_TOKEN = 365 * 24 * HOUR_IN_SECONDS;
+        private $KEY_AGENTES = AVSHME_KEY . "_AGENTES_SAVE";
+
+        public function clearAuth()
+        {
+            delete_transient($this->KEY_AUTH);
+        }
+        private function getAuth()
+        {
+            try {
+                $auth = get_transient($this->KEY_AUTH);
+                if (!$auth) {
+                    return null;
+                }
+                $auth = json_decode($auth);
+                /**
+                 * auth example
+                 *  {
+                        "status": "ok",
+                        "message": "usuario encontrado",
+                        "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.........",
+                        "cuentas": [
+                            {
+                                "servicio": "demo",
+                                "usuarios": [
+                                    {
+                                        "id": 1,
+                                        "documento": "1",
+                                        "usuario": "demo",
+                                        "nombre": "demo",
+                                        "razon": "demo",
+                                        "asesorlogistico": "demo",
+                                        "nombreasesor": "demo"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                 */
+                if (!$auth || !isset($auth->status) || $auth->status !== "ok") {
+                    return null;
+                }
+                $token = $auth->token ?? null;
+                if (!$token || !$this->isValidToken($token)) {
+                    return null;
+                }
+                return $auth;
+            } catch (\Throwable $th) {
+                return null;
+            }
+        }
+        private function setAuth($auth)
+        {
+            try {
+                if (!$auth || !isset($auth->status) || $auth->status !== "ok") {
+                    return null;
+                }
+                set_transient($this->KEY_AUTH, json_encode($auth), $this->TIME_TOKEN);
+            } catch (\Throwable $th) {
+                return null;
+            }
+        }
+        public function clearAgentes()
+        {
+            delete_transient($this->KEY_AGENTES);
+        }
+        private function getAgentes()
+        {
+            try {
+
+                $agentes = get_transient($this->KEY_AGENTES);
+
+                if (!$agentes) {
+                    return null;
+                }
+
+                $agentes = json_decode($agentes);
+                /**
+                 * agentes example
+                 *  {
+                        "status": "ok",
+                        "message": "registros encontrados",
+                        "agentes": [
+                            {
+                                "id": 1,
+                                "nombre": "demo",
+                                "identificacion": 1,
+                                "email": "demo",
+                                "direccion": "demo",
+                                "comentarios": "demo",
+                                "comentario_direccion": "demo",
+                                "telefono": "1",
+                                "idordenrecogida": 0,
+                                "idciudad": "MEDELLIN(ANTIOQUIA)",
+                                "principal": "NO",
+                                "nombrecontacto": "demo",
+                                "tienevalorminimo": false
+                            }
+                        ]
+                    }
+                 */
+
+                if (!$agentes || !isset($agentes->status) || $agentes->status !== "ok") {
+                    return null;
+                }
+
+                return $agentes;
+            } catch (\Throwable $th) {
+                return null;
+            }
+        }
+        private function setAgentes($agentes)
+        {
+            try {
+
+                if (!$agentes || !isset($agentes->status) || $agentes->status !== "ok") {
+                    return;
+                }
+
+                set_transient(
+                    $this->KEY_AGENTES,
+                    json_encode($agentes),
+                    12 * HOUR_IN_SECONDS
+                );
+            } catch (\Throwable $th) {
+                return null;
+            }
+        }
+        private function isValidToken($token)
+        {
+            $parts = explode('.', $token);
+
+            if (count($parts) !== 3) {
+                return false; // token inválido
+            }
+
+            $payload = json_decode(base64_decode($parts[1]), true);
+
+            if (!isset($payload['exp'])) {
+                return false; // no tiene expiración
+            }
+
+            return $payload['exp'] >= time();
+        }
         private function request2($json_data, $url)
         {
             $opts = array(
@@ -110,14 +254,14 @@ function load_AveonlineAPI()
                 $data_cache = AVSHME_getCache($cache_key);
             }
             try {
-                $DATAJSON = json_decode($json,true);
+                $DATAJSON = json_decode($json, true);
             } catch (\Throwable $th) {
-                $DATAJSON=[];
+                $DATAJSON = [];
             }
             $TYPE = $DATAJSON['tipo'];
             if ($data_cache != NULL) {
-                if($url =="https://app.aveonline.co/api/nal/v1.0/generarGuiaTransporteNacional.php" && $DATAJSON['tipo']=='cotizarDoble' ){
-                    if($data_cache->cotizaciones == NULL || count($data_cache->cotizaciones) == 0){
+                if ($url == "https://app.aveonline.co/api/nal/v1.0/generarGuiaTransporteNacional.php" && $DATAJSON['tipo'] == 'cotizarDoble') {
+                    if ($data_cache->cotizaciones == NULL || count($data_cache->cotizaciones) == 0) {
                         $data_cache = NULL;
                     }
                 }
@@ -185,33 +329,51 @@ function load_AveonlineAPI()
         }
         public function autenticarusuario()
         {
+            $auth = $this->getAuth();
+            // AVSHME_addLogAveonline(array(
+            //     "type" => "auth cache",
+            //     "auth" => $auth,
+            // ));
+            if ($auth) {
+                return $auth;
+            }
             $json_body = json_encode(array(
                 "tipo" => "auth",
                 "usuario" => $this->settings['user'],
                 "clave" => $this->settings['password'],
                 "acceso" => "ecommerce",
-                "tiempoToken" => "100000"
+                "tiempoToken" => $this->TIME_TOKEN . ""
             ));
-            $key_cache =  'token__' . md5($json_body);
-            return $this->request($json_body, $this->API_URL_AUTHENTICATE, $key_cache);
+            $auth = $this->request($json_body, $this->API_URL_AUTHENTICATE);
+            $this->setAuth($auth);
+            return $auth;
         }
         public function get_token()
         {
             $r = $this->autenticarusuario();
-            if ($r->status == 'ok') {
+            if ($r && isset($r->status) && $r->status === 'ok') {
                 return $r->token;
             }
             return null;
         }
         public function agentes()
         {
+            $agentes = $this->getAgentes();
+
+            if ($agentes) {
+                return $agentes;
+            }
+
             $json_body = json_encode(array(
                 "tipo" => "listarAgentesPorEmpresaAuth",
                 "token" => $this->get_token(),
                 "idempresa" => $this->settings['select_cuenta']
             ));
-            $key_cache =  'agentes__' . md5($json_body);
-            return $this->request($json_body, $this->API_URL_AGENTE, $key_cache);
+            $agentes = $this->request($json_body, $this->API_URL_AGENTE);
+
+            $this->setAgentes($agentes);
+
+            return $agentes;
         }
         public function cotisar($data = array())
         {
@@ -255,7 +417,7 @@ function load_AveonlineAPI()
             foreach ($order->get_items() as $item_id => $item) {
                 $product_id         = $item->get_product_id();
                 $id_products_ignore_by_product     = get_post_meta($product_id, '_product_group_exclude', true);
-                $id_products_ignore_by_product = explode(",","$id_products_ignore_by_product");
+                $id_products_ignore_by_product = explode(",", "$id_products_ignore_by_product");
                 $id_products_ignore = array_merge($id_products_ignore, $id_products_ignore_by_product);
             }
             foreach ($order->get_items() as $item_id => $item) {
@@ -267,7 +429,7 @@ function load_AveonlineAPI()
                 if ($variation_id != 0) {
                     $product_id = $variation_id;
                 }
-                if(in_array($product_id,$id_products_ignore)){
+                if (in_array($product_id, $id_products_ignore)) {
                     continue;
                 }
 
@@ -278,7 +440,7 @@ function load_AveonlineAPI()
                     $_valor_declarado = $_product->get_price();
                 }
 
-                $discount =  $subtotal ==0 ? 1 : $total / $subtotal;
+                $discount =  $subtotal == 0 ? 1 : $total / $subtotal;
 
                 $productos[] = array(
                     "alto"              => $_product->get_height(),
