@@ -43,6 +43,7 @@ function aveonline_shipping_method()
 
             $api->clearAuth();
             $api->clearAgentes();
+            $api->clearTransportadora();
         }
         function request_config_api()
         {
@@ -50,8 +51,6 @@ function aveonline_shipping_method()
             $this->classPassword = "";
             $api = new AveonlineAPI($this->settings);
             if (isset($this->settings['user']) && isset($this->settings['password'])) {
-                // $api->clearAuth();
-                // $api->clearAgentes();
                 $r = $api->autenticarusuario();
                 if ($r->status == 'ok') {
                     $cuentas =  $r->cuentas;
@@ -695,3 +694,23 @@ function AVSHME_add_aveonline_shipping_method($methods)
     return $methods;
 }
 add_filter('woocommerce_shipping_methods', 'AVSHME_add_aveonline_shipping_method');
+
+add_action('wp_footer', 'aveonline_force_checkout_update');
+
+function aveonline_force_checkout_update() {
+    if (!is_checkout()) return;
+?>
+<script>
+jQuery(function($){
+
+    function aveonlineUpdateCheckout(){
+        $('body').trigger('update_checkout');
+    }
+
+    // esperar a que WooCommerce cargue
+    setTimeout(aveonlineUpdateCheckout, 500);
+
+});
+</script>
+<?php
+}

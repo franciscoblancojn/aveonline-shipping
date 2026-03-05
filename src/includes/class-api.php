@@ -23,6 +23,7 @@ function load_AveonlineAPI()
     {
         private $API_URL_AUTHENTICATE   = 'https://app.aveonline.co/api/comunes/v1.0/autenticarusuario.php';
         private $API_URL_AGENTE         = "https://app.aveonline.co/api/comunes/v1.0/agentes.php";
+        private $API_URL_TRANSPORTADORA         = "https://app.aveonline.co/api/box/v1.0/transportadora.php";
         private $API_URL_CITY           = "https://app.aveonline.co/api/box/v1.0/ciudad.php";
         private $API_URL_QUOTE          = "https://app.aveonline.co/api/nal/v1.0/generarGuiaTransporteNacional.php";
         private $API_URL_UPDATE_GUIA    = "https://app.aveonline.co/api/nal/v1.0/plugins/wordpress.php";
@@ -36,9 +37,10 @@ function load_AveonlineAPI()
             $this->settings = $settings;
         }
 
-        private $KEY_AUTH = "AVSHME_AUTH_SAVE";
+        private $KEY_AUTH = AVSHME_KEY . "_AUTH_SAVE";
         private $TIME_TOKEN = 365 * DAY_IN_SECONDS;
-        private $KEY_AGENTES = "AVSHME_AGENTES_SAVE";
+        private $KEY_AGENTES = AVSHME_KEY . "_AGENTES_SAVE";
+        private $KEY_TRANSPORTADORA = AVSHME_KEY . "_TRANSPORTADORA_SAVE";
 
         public function clearAuth()
         {
@@ -164,6 +166,57 @@ function load_AveonlineAPI()
                 return null;
             }
         }
+
+
+        public function clearTransportadora()
+        {
+            delete_option($this->KEY_TRANSPORTADORA);
+        }
+        private function getTransportadora()
+        {
+            try {
+                $transportadora = get_option($this->KEY_TRANSPORTADORA);
+                if (!$transportadora) {
+                    return null;
+                }
+                $transportadora = json_decode($transportadora);
+                /**
+                 * transportadora example
+                 *  {
+                        "status": "ok",
+                        "message": "registros encontrados",
+                        "transportadoras": [
+                            {
+                                "id": 1,
+                                "text": "demo",
+                                "imagen": "demo.png",
+                                "imagen2": "demo.png"
+                            }
+                        ]
+                    }
+                 */
+                if (!$transportadora || !isset($auth->status) || $auth->transportadora !== "ok") {
+                    return null;
+                }
+                return $transportadora;
+            } catch (\Throwable $th) {
+                return null;
+            }
+        }
+        private function setTransportadora($transportadora)
+        {
+            try {
+                if (!$transportadora || !isset($transportadora->status) || $transportadora->status !== "ok") {
+                    return null;
+                }
+                update_option($this->KEY_TRANSPORTADORA, json_encode($transportadora));
+            } catch (\Throwable $th) {
+                return null;
+            }
+        }
+
+
+
         public function isValidToken($token)
         {
             $parts = explode('.', $token);
@@ -332,12 +385,6 @@ function load_AveonlineAPI()
             if ($auth) {
                 return $auth;
             }
-            // evitar múltiples requests simultáneos
-            if (get_transient('AVSHME_AUTH_LOCK')) {
-                return null;
-            }
-
-            set_transient('AVSHME_AUTH_LOCK', 1, 30);
             $json_body = json_encode(array(
                 "tipo" => "auth",
                 "usuario" => $this->settings['user'],
@@ -347,7 +394,6 @@ function load_AveonlineAPI()
             ));
             $auth = $this->request($json_body, $this->API_URL_AUTHENTICATE);
             $this->setAuth($auth);
-            delete_transient('AVSHME_AUTH_LOCK');
             return $auth;
         }
         public function get_token()
@@ -377,9 +423,117 @@ function load_AveonlineAPI()
 
             return $agentes;
         }
+        public function transportadora()
+        {
+            $transportadora = $this->getTransportadora();
+
+            if ($transportadora) {
+                return $transportadora;
+            }
+
+            $json_body = json_encode(array(
+                "tipo" => "listarTransportadorasPorEmpresa",
+                "token" => $this->get_token(),
+                "id" => $this->settings['select_cuenta']
+            ));
+            $transportadora = $this->request($json_body, $this->API_URL_TRANSPORTADORA);
+
+            $this->setTransportadora($transportadora);
+
+            return $transportadora;
+        }
+
+        private function cotizarParalelo($ids_transportadora, $body)
+        {
+            $multi = curl_multi_init();
+            $channels = [];
+
+            foreach ($ids_transportadora as $idtransportador) {
+                $body_send = $body;
+                $body_send["idtransportador"] = $idtransportador;
+
+                $ch = curl_init($this->API_URL_QUOTE);
+
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_POST => true,
+                    CURLOPT_HTTPHEADER => [
+                        'Content-Type: application/json'
+                    ],
+                    CURLOPT_POSTFIELDS => json_encode($body_send),
+                    CURLOPT_CONNECTTIMEOUT => AVSHME_TIME_MAX_COTIZAR , // máximo AVSHME_TIME_MAX_COTIZAR para conectar
+                    CURLOPT_TIMEOUT => AVSHME_TIME_MAX_COTIZAR,        // máximo AVSHME_TIME_MAX_COTIZAR total
+                ]);
+
+                curl_multi_add_handle($multi, $ch);
+
+                $channels[] = [
+                    "handle" => $ch,
+                    "body" => $body_send,
+                    "idtransportador" => $idtransportador
+                ];
+            }
+
+            /**
+             * Ejecutar peticiones simultáneas
+             */
+            $running = null;
+            do {
+                curl_multi_exec($multi, $running);
+                curl_multi_select($multi);
+            } while ($running > 0);
+
+            /**
+             * Unir resultados
+             */
+            $cotizaciones = [];
+
+            foreach ($channels as $item) {
+
+                $ch = $item["handle"];
+                $body_send = $item["body"];
+                $idtransportador = $item["idtransportador"];
+                $response = curl_multi_getcontent($ch);
+                $data = json_decode($response);
+
+                AVSHME_addLogAveonline(array(
+                    "type" => 'cotizacion paralela',
+                    "transportadora" => $idtransportador,
+                    "send" => $body_send,
+                    "data" => $data,
+                ));
+                if ($data && isset($data->status) && $data->status === "ok") {
+                    if (isset($data->cotizaciones)) {
+                        $cotizaciones = array_merge($cotizaciones, $data->cotizaciones);
+                    }
+                }
+
+                curl_multi_remove_handle($multi, $ch);
+                curl_close($ch);
+            }
+
+            curl_multi_close($multi);
+
+            /**
+             * Respuesta final unificada
+             */
+            return (object)[
+                "status" => "ok",
+                "message" => "cotizaciones encontradas",
+                "cotizaciones" => $cotizaciones
+            ];
+        }
+
         public function cotisar($data = array())
         {
             $key_cache =  'cotisar_' . md5(json_encode($data));
+            
+            $cache = get_transient($key_cache);
+
+            if ($cache !== false) {
+                return $cache;
+            }
+
             $json_body = array(
                 "tipo"                  => "cotizarDoble",
                 "access"                => "",
@@ -407,8 +561,67 @@ function load_AveonlineAPI()
                         ])
                 )
                 ->validate($data["productos"]);
-            $json_body = json_encode($json_body);
-            return $this->request($json_body, $this->API_URL_QUOTE, $key_cache, true);
+
+            $transportadora = $this->transportadora();
+            $ids_transportadora = [];
+
+            foreach ($transportadora->transportadoras as $t) {
+                $ids_transportadora[] = $t->id;
+            }
+            /**
+             * $ids_transportadora example
+             * [
+                1,
+                2,
+                3,
+                ...
+            ]
+             */
+
+            //INFO: mas optimo que cotizar todas las transportadoras
+            $result =  $this->cotizarParalelo($ids_transportadora, $json_body);
+            set_transient($key_cache, $result, 60);
+
+            return $result;
+            $cotizacion =  $this->request(json_encode($json_body), $this->API_URL_QUOTE, $key_cache, true);
+            /**
+             * cotizacion example
+             * {
+                "status": "ok",
+                "message": "cotizaciones encontradas",
+                "cotizaciones": [
+                    {
+                        "numbererror": "-0-",
+                        "dataerror": "",
+                        "codTransportadora": "29",
+                        "nombreTransportadora": "ENVIA",
+                        "logoTransportadora": "https://app.aveonline.co/app/temas/imagen_transpo/084935-1-envia-094632-1-ENVIA.jpg",
+                        "logoTransportadora2": "https://app.aveonline.co/app/temas/imagen_transpo/121748-2-envia.png",
+                        "origen": "MEDELLIN(ANTIOQUIA)",
+                        "destino": "MEDELLIN(ANTIOQUIA)",
+                        "unidades": "1",
+                        "kilos": 3,
+                        "pesovolumen": 1,
+                        "valoracion": "20000",
+                        "porcentajeValoracion": "1",
+                        "codigoTrayecto": "8",
+                        "trayecto": "urbano",
+                        "tipoEnvio": "Mensajeria",
+                        "fletexkilo": 13488,
+                        "fletexunidad": 13488,
+                        "fletetotal": 13488,
+                        "diasentrega": "1",
+                        "costoManejo": 200,
+                        "valorTotal": 13688,
+                        "valorOtrosRecaudos": 0,
+                        "total": 13688,
+                        "contraentrega": false
+                    },
+                    ...
+                ]
+            }
+             */
+            return $cotizacion;
         }
         public function AVSHME_generate_guia($data, $order)
         {

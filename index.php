@@ -24,6 +24,7 @@ define("AVSHME_LOG_COUNT",100);
 define("AVSHME_BASENAME",plugin_basename(__FILE__));
 define("AVSHME_DIR",plugin_dir_path( __FILE__ ));
 define("AVSHME_URL",plugin_dir_url(__FILE__));
+define("AVSHME_TIME_MAX_COTIZAR",5);//en segundos
 
 require_once AVSHME_DIR . 'update.php';
 github_updater_plugin_wordpress([
