@@ -448,6 +448,9 @@ function load_AveonlineAPI()
             $multi = curl_multi_init();
             $channels = [];
 
+            $maxTime  = $this->settings['maxTimeCotizar'] ?? AVSHME_TIME_MAX_COTIZAR;
+            $maxTime = max((int)$maxTime, AVSHME_TIME_MIN_COTIZAR);
+
             foreach ($ids_transportadora as $idtransportador) {
                 $body_send = $body;
                 $body_send["idtransportador"] = $idtransportador;
@@ -461,8 +464,8 @@ function load_AveonlineAPI()
                         'Content-Type: application/json'
                     ],
                     CURLOPT_POSTFIELDS => json_encode($body_send),
-                    CURLOPT_CONNECTTIMEOUT => AVSHME_TIME_MAX_COTIZAR , // máximo AVSHME_TIME_MAX_COTIZAR para conectar
-                    CURLOPT_TIMEOUT => AVSHME_TIME_MAX_COTIZAR,        // máximo AVSHME_TIME_MAX_COTIZAR total
+                    CURLOPT_CONNECTTIMEOUT => $maxTime , // máximo maxTime para conectar
+                    CURLOPT_TIMEOUT => $maxTime,        // máximo maxTime total
                 ]);
 
                 curl_multi_add_handle($multi, $ch);
@@ -501,6 +504,7 @@ function load_AveonlineAPI()
                     "transportadora" => $idtransportador,
                     "send" => $body_send,
                     "data" => $data,
+                    "maxTime" => $maxTime,
                 ));
                 if ($data && isset($data->status) && $data->status === "ok") {
                     if (isset($data->cotizaciones)) {
@@ -579,7 +583,7 @@ function load_AveonlineAPI()
              */
 
             //INFO: mas optimo que cotizar todas las transportadoras
-            $result =  $this->cotizarParalelo($ids_transportadora, $json_body);
+            $result =  $this->cotizarParalelo($ids_transportadora, $json_body,$maxTime);
             set_transient($key_cache, $result, 60);
 
             return $result;

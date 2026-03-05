@@ -5,6 +5,10 @@ function aveonline_shipping_method()
     //if (class_exists( 'WC_aveonline_Shipping_Method' ) )return;
     class WC_aveonline_Shipping_Method extends WC_Shipping_Method
     {
+        public $classUser = '';
+        public $classPassword = '';
+        public $select_cuenta = '';
+        public $select_agentes = '';
         public function __construct($instance_id = 0)
         {
             //parent::__construct( $instance_id );
@@ -261,6 +265,20 @@ function aveonline_shipping_method()
                         'min'   => '0'
                     )
                 ),
+                'tag_maxTime' => array(
+                    'id'    => 'tag',
+                    'type'  => 'tag',
+                    'title' => __('Tiempo de Cotizacion'),
+                ),
+                'maxTimeCotizar' => array(
+                    'title' => __('Tiempo maximo de cotizacion'),
+                    'type' => 'number',
+                    'default' => AVSHME_TIME_MAX_COTIZAR,
+                    'custom_attributes' => array(
+                        'step'  => 'any',
+                        'min'   => AVSHME_TIME_MIN_COTIZAR
+                    )
+                ),
             );
         }
         public function isEnvioGratis($price = 0)
@@ -287,14 +305,14 @@ function aveonline_shipping_method()
 
             $data = wp_parse_args($data, $defaults);
             ob_start();
-?>
-            <tr class="<?= $data["class"] ?>">
-                <td>
-                    <?php echo wp_kses_post($data['title']); ?>
-                </td>
-                <td></td>
-            </tr>
-        <?php
+            ?>
+                <tr class="<?= $data["class"] ?>">
+                    <td>
+                        <?php echo wp_kses_post($data['title']); ?>
+                    </td>
+                    <td></td>
+                </tr>
+            <?php
             return ob_get_clean();
         }
         /**
