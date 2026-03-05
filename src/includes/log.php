@@ -25,6 +25,7 @@ if (AVSHME_LOG) {
 
     function AVSHME_logAveonline_aveonline_page()
     {
+            $api = new AveonlineAPI([]);
         try {
             if ($_POST['clear-log'] == "1") {
                 update_option("AVSHME_log", "[]");

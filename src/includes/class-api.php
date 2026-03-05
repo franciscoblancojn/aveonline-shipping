@@ -36,18 +36,18 @@ function load_AveonlineAPI()
             $this->settings = $settings;
         }
 
-        private $KEY_AUTH = AVSHME_KEY . "_AUTH_SAVE";
-        private $TIME_TOKEN = 365 * 24 * HOUR_IN_SECONDS;
-        private $KEY_AGENTES = AVSHME_KEY . "_AGENTES_SAVE";
+        private $KEY_AUTH = "AVSHME_AUTH_SAVE";
+        private $TIME_TOKEN = 365 * DAY_IN_SECONDS;
+        private $KEY_AGENTES = "AVSHME_AGENTES_SAVE";
 
         public function clearAuth()
         {
-            delete_transient($this->KEY_AUTH);
+            delete_option($this->KEY_AUTH);
         }
         private function getAuth()
         {
             try {
-                $auth = get_transient($this->KEY_AUTH);
+                $auth = get_option($this->KEY_AUTH);
                 if (!$auth) {
                     return null;
                 }
@@ -85,10 +85,6 @@ function load_AveonlineAPI()
                 }
                 return $auth;
             } catch (\Throwable $th) {
-                AVSHME_addLogAveonline(array(
-                    "type" => "auth error get",
-                    "message" => $th->getMessage(),
-                ));
                 return null;
             }
         }
@@ -98,24 +94,20 @@ function load_AveonlineAPI()
                 if (!$auth || !isset($auth->status) || $auth->status !== "ok") {
                     return null;
                 }
-                set_transient($this->KEY_AUTH, json_encode($auth), $this->TIME_TOKEN);
+                update_option($this->KEY_AUTH, json_encode($auth));
             } catch (\Throwable $th) {
-                AVSHME_addLogAveonline(array(
-                    "type" => "auth error set",
-                    "message" => $th->getMessage(),
-                ));
                 return null;
             }
         }
         public function clearAgentes()
         {
-            delete_transient($this->KEY_AGENTES);
+            delete_option($this->KEY_AGENTES);
         }
         private function getAgentes()
         {
             try {
 
-                $agentes = get_transient($this->KEY_AGENTES);
+                $agentes = get_option($this->KEY_AGENTES);
 
                 if (!$agentes) {
                     return null;
@@ -164,16 +156,15 @@ function load_AveonlineAPI()
                     return;
                 }
 
-                set_transient(
+                update_option(
                     $this->KEY_AGENTES,
                     json_encode($agentes),
-                    12 * HOUR_IN_SECONDS
                 );
             } catch (\Throwable $th) {
                 return null;
             }
         }
-        private function isValidToken($token)
+        public function isValidToken($token)
         {
             $parts = explode('.', $token);
 
@@ -338,13 +329,15 @@ function load_AveonlineAPI()
         public function autenticarusuario()
         {
             $auth = $this->getAuth();
-            // AVSHME_addLogAveonline(array(
-            //     "type" => "auth cache",
-            //     "auth" => $auth,
-            // ));
             if ($auth) {
                 return $auth;
             }
+            // evitar múltiples requests simultáneos
+            if (get_transient('AVSHME_AUTH_LOCK')) {
+                return null;
+            }
+
+            set_transient('AVSHME_AUTH_LOCK', 1, 30);
             $json_body = json_encode(array(
                 "tipo" => "auth",
                 "usuario" => $this->settings['user'],
@@ -354,6 +347,7 @@ function load_AveonlineAPI()
             ));
             $auth = $this->request($json_body, $this->API_URL_AUTHENTICATE);
             $this->setAuth($auth);
+            delete_transient('AVSHME_AUTH_LOCK');
             return $auth;
         }
         public function get_token()
