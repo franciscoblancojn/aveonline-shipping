@@ -583,7 +583,7 @@ function load_AveonlineAPI()
              */
 
             //INFO: mas optimo que cotizar todas las transportadoras
-            $result =  $this->cotizarParalelo($ids_transportadora, $json_body,$maxTime);
+            $result =  $this->cotizarParalelo($ids_transportadora, $json_body);
             set_transient($key_cache, $result, 60);
 
             return $result;
