@@ -85,6 +85,10 @@ function load_AveonlineAPI()
                 }
                 return $auth;
             } catch (\Throwable $th) {
+                AVSHME_addLogAveonline(array(
+                    "type" => "auth error get",
+                    "message" => $th->getMessage(),
+                ));
                 return null;
             }
         }
@@ -96,6 +100,10 @@ function load_AveonlineAPI()
                 }
                 set_transient($this->KEY_AUTH, json_encode($auth), $this->TIME_TOKEN);
             } catch (\Throwable $th) {
+                AVSHME_addLogAveonline(array(
+                    "type" => "auth error set",
+                    "message" => $th->getMessage(),
+                ));
                 return null;
             }
         }
