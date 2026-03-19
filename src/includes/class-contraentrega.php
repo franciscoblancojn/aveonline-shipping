@@ -17,7 +17,7 @@ function AVSHME_woocommerce_Contraentrega_gateway()
  		 */
  		public function __construct() {
 
-            $this->id = 'contraentrega'; // payment gateway plugin ID
+            $this->id = AVSHME_PAYMENT_CONTRAENTREGA; // payment gateway plugin ID
             
             //$this->icon = plugin_dir_url( __FILE__ )."../img/c21.svg";
             $this->has_fields = false; // in case you need a custom credit card form
@@ -112,10 +112,10 @@ function AVSHME_desactivar_wc_payment_gateway( $available_gateways ) {
         $fijarFlete = $ave->get_option( 'fijarFlete' );
 
         if ( $fijarFlete == "yes" ) {
-            unset( $available_gateways['contraentrega'] );
+            unset( $available_gateways[AVSHME_PAYMENT_CONTRAENTREGA] );
         }
     } catch (\Throwable $th) {
-        unset( $available_gateways['contraentrega'] );
+        unset( $available_gateways[AVSHME_PAYMENT_CONTRAENTREGA] );
     }
     return $available_gateways;
 }

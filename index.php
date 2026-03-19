@@ -19,6 +19,7 @@ if (!function_exists( 'is_plugin_active' ))
 
 //AVSHME_
 define("AVSHME_KEY",'AVSHME');
+define("AVSHME_PAYMENT_CONTRAENTREGA",'contraentrega');
 define("AVSHME_LOG",true);
 define("AVSHME_LOG_COUNT",100);
 define("AVSHME_BASENAME",plugin_basename(__FILE__));

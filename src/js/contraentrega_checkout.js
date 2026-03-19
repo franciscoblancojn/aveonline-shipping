@@ -43,3 +43,9 @@ function load_script_contraentrega() {
 //     alert(1)
 //     load_script_contraentrega()
 // }, false);
+
+jQuery(function($){
+    $('form.checkout').on('change', 'input[name="payment_method"]', function(){
+        $('body').trigger('update_checkout');
+    });
+});

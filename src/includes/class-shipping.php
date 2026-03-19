@@ -305,14 +305,14 @@ function aveonline_shipping_method()
 
             $data = wp_parse_args($data, $defaults);
             ob_start();
-            ?>
-                <tr class="<?= $data["class"] ?>">
-                    <td>
-                        <?php echo wp_kses_post($data['title']); ?>
-                    </td>
-                    <td></td>
-                </tr>
-            <?php
+?>
+            <tr class="<?= $data["class"] ?>">
+                <td>
+                    <?php echo wp_kses_post($data['title']); ?>
+                </td>
+                <td></td>
+            </tr>
+        <?php
             return ob_get_clean();
         }
         /**
@@ -553,16 +553,19 @@ function aveonline_shipping_method()
             <?php
             return ob_get_clean();
         }
-        public function add_rate_request($r, $request, $envioGratis = false)
+        public function add_rate_request($r, $request, $envioGratis = false, $contraentregaPayment = 1)
         {
             //verifit request
             if ($r->status == "ok") {
-                $paymentContraentrega = new WC_Contraentrega();
-                $activeContraentrega = $paymentContraentrega->enabled == "yes";
                 //for cotizaciones
                 foreach ($r->cotizaciones as $key => $value) {
                     //verifict error
                     if ($value->numbererror == "-0-") {
+                        // if (($value->contraentrega == "true" && $contraentregaPayment == 0) ||
+                        //     ($value->contraentrega != "true" && $contraentregaPayment == 1)
+                        // ) {
+                        //     continue;
+                        // }
                         AVSHME_addLogAveonline(array(
                             "type" => "add_rate_request",
                             "destino" => $value,
@@ -582,23 +585,22 @@ function aveonline_shipping_method()
 
                         $request['idtransportador'] = $value->codTransportadora;
                         $request['envioGratis'] = $envioGratis ? 1 : 0;
-                        if ($activeContraentrega == true || $value->contraentrega != "true") {
-                            $t = $this->settings['fijarFlete'] == 'yes' ? floatval($this->settings['fleteFijo']) : $value->total;
-                            $shipping_rate = array(
-                                'id'      => $value->codTransportadora . $idContraentrega,
-                                'label'   => $titleContraentrega . $value->nombreTransportadora,
-                                'cost'    => $envioGratis ? 0 : $t,
-                                //add meta dat
-                                'meta_data' => array(
-                                    "request"      => base64_encode(json_encode($request)),
-                                ),
-                            );
-                            AVSHME_addLogAveonline(array(
-                                "type" => "shipping_rate",
-                                "destino" => $shipping_rate,
-                            ));
-                            $this->add_rate($shipping_rate);
-                        }
+
+                        $t = $this->settings['fijarFlete'] == 'yes' ? floatval($this->settings['fleteFijo']) : $value->total;
+                        $shipping_rate = array(
+                            'id'      => $value->codTransportadora . $idContraentrega,
+                            'label'   => $titleContraentrega . $value->nombreTransportadora,
+                            'cost'    => $envioGratis ? 0 : $t,
+                            //add meta dat
+                            'meta_data' => array(
+                                "request"      => base64_encode(json_encode($request)),
+                            ),
+                        );
+                        AVSHME_addLogAveonline(array(
+                            "type" => "shipping_rate",
+                            "destino" => $shipping_rate,
+                        ));
+                        $this->add_rate($shipping_rate);
                     }
                 }
             }
@@ -607,6 +609,16 @@ function aveonline_shipping_method()
         {
             try {
                 if (!is_checkout()) {
+                    return;
+                }
+                if (
+                    isset($package['destination']['address']) &&
+                    $package['destination']['address'] === AVSHME_KEY
+                ) {
+                    AVSHME_addLogAveonline([
+                        "type" => "SKIP_CALCULATION_BY_KEY_" . AVSHME_KEY,
+                        "address" => $package['destination']['address'],
+                    ]);
                     return;
                 }
                 AVSHME_addLogAveonline(array(
@@ -626,6 +638,22 @@ function aveonline_shipping_method()
                     ));
                     return;
                 };
+                $payment_method = null;
+                // 1. Primero intenta desde AJAX (checkout update)
+                if (isset($_POST['payment_method'])) {
+                    $payment_method = wc_clean($_POST['payment_method']);
+                }
+                // 2. Luego desde sesión
+                elseif (WC()->session) {
+                    $payment_method = WC()->session->get('chosen_payment_method');
+                }
+                $contraentregaPayment = $payment_method === AVSHME_PAYMENT_CONTRAENTREGA ? 1 : 0;
+
+                AVSHME_addLogAveonline(array(
+                    "type" => "payment_method",
+                    "payment_method" => $payment_method,
+                    "is_contraentrega" => $contraentregaPayment,
+                ));
                 $productos = [];
                 //recorre products
                 foreach ($package["contents"] as $clave => $valor) {
@@ -660,15 +688,6 @@ function aveonline_shipping_method()
                         "valorDeclarado"    => floatval($_valor_declarado) * $discount,
                     );
                 }
-                $contraentregaPayment = 0;
-                $gateways = WC()->payment_gateways->get_available_payment_gateways();
-                if ($gateways) {
-                    foreach ($gateways as $gateway) {
-                        if ($gateway->enabled == 'yes' && $gateway->title == 'Contraentrega Aveonline') {
-                            $contraentregaPayment = 1;
-                        }
-                    }
-                }
                 $envioGratis = $this->isEnvioGratis($package['contents_cost']);
 
                 //generate request
@@ -690,7 +709,7 @@ function aveonline_shipping_method()
                 //requeste api
                 $r = $api->cotisar($request);
                 //add rates
-                $this->add_rate_request($r, $request, $envioGratis);
+                $this->add_rate_request($r, $request, $envioGratis, $contraentregaPayment);
             } catch (\Throwable $th) {
                 AVSHME_addLogAveonline(array(
                     "type" => "error_cotizar",
@@ -712,23 +731,3 @@ function AVSHME_add_aveonline_shipping_method($methods)
     return $methods;
 }
 add_filter('woocommerce_shipping_methods', 'AVSHME_add_aveonline_shipping_method');
-
-add_action('wp_footer', 'aveonline_force_checkout_update');
-
-function aveonline_force_checkout_update() {
-    if (!is_checkout()) return;
-?>
-<script>
-jQuery(function($){
-
-    function aveonlineUpdateCheckout(){
-        $('body').trigger('update_checkout');
-    }
-
-    // esperar a que WooCommerce cargue
-    setTimeout(aveonlineUpdateCheckout, 500);
-
-});
-</script>
-<?php
-}
