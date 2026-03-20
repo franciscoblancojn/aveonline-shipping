@@ -13,12 +13,14 @@ function AVSHME_add_JS_CSS_footer()
                     console.log("change payment_method");
                     if (billing_address_1) {
                         const v = billing_address_1.value
+						jQuery(document.body).one('updated_checkout', function () {
+							if(billing_address_1.value == "<?= AVSHME_KEY ?>"){
+								billing_address_1.value = v;
+								jQuery(document.body).trigger('update_checkout');
+							}
+						});
                         billing_address_1.value = "<?= AVSHME_KEY ?>";
                         jQuery(document.body).trigger('update_checkout');
-                        setTimeout(() => {
-                            billing_address_1.value = v
-                            jQuery(document.body).trigger('update_checkout');
-                        }, 500);
                     }
                 });
             });
