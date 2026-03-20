@@ -1,6 +1,6 @@
 {
   "name": "aveonline-shipping",
-  "version": "3.6.0",
+  "version": "3.6.1",
   "description": "Integración de woocommerce con los servicios de envío de Aveonline.",
   "main": "index.js",
   "scripts": {
