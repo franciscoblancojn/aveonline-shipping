@@ -214,9 +214,6 @@ function load_AveonlineAPI()
                 return null;
             }
         }
-
-
-
         public function isValidToken($token)
         {
             $parts = explode('.', $token);
@@ -442,7 +439,6 @@ function load_AveonlineAPI()
 
             return $transportadora;
         }
-
         private function cotizarParalelo($ids_transportadora, $body)
         {
             $multi = curl_multi_init();
@@ -464,7 +460,7 @@ function load_AveonlineAPI()
                         'Content-Type: application/json'
                     ],
                     CURLOPT_POSTFIELDS => json_encode($body_send),
-                    CURLOPT_CONNECTTIMEOUT => $maxTime , // máximo maxTime para conectar
+                    CURLOPT_CONNECTTIMEOUT => $maxTime, // máximo maxTime para conectar
                     CURLOPT_TIMEOUT => $maxTime,        // máximo maxTime total
                 ]);
 
@@ -531,7 +527,7 @@ function load_AveonlineAPI()
         public function cotisar($data = array())
         {
             $key_cache =  'cotisar_' . md5(json_encode($data));
-            
+
             $cache = get_transient($key_cache);
 
             if ($cache !== false) {
@@ -703,8 +699,17 @@ function load_AveonlineAPI()
                 "dscorreopre"       => $this->settings['dscorreopre'],
 
                 "dsnit"             => AVSHME_get_options($order_id, '_cedula'),
-                "dsnombre"          => $order->get_shipping_first_name(),
-                "dsnombrecompleto"  => $order->get_formatted_shipping_full_name(),
+                "dsnombre" => !empty($order->get_shipping_first_name())
+                    ? $order->get_shipping_first_name()
+                    : (!empty($order->get_billing_first_name())
+                        ? $order->get_billing_first_name()
+                        : 'Cliente'),
+
+                "dsnombrecompleto" => !empty($order->get_formatted_shipping_full_name())
+                    ? $order->get_formatted_shipping_full_name()
+                    : (!empty($order->get_formatted_billing_full_name())
+                        ? $order->get_formatted_billing_full_name()
+                        : 'Cliente'),
                 "dscorreop"         => $order->get_billing_email(),
                 "dstel"             => $telefono,
                 "dscelular"         => $telefono,
