@@ -699,17 +699,17 @@ function load_AveonlineAPI()
                 "dscorreopre"       => $this->settings['dscorreopre'],
 
                 "dsnit"             => AVSHME_get_options($order_id, '_cedula'),
-                "dsnombre" => !empty($order->get_shipping_first_name())
-                    ? $order->get_shipping_first_name()
-                    : (!empty($order->get_billing_first_name())
-                        ? $order->get_billing_first_name()
-                        : 'Cliente'),
+                "dsnombre" => trim(
+                    !empty($order->get_shipping_first_name())
+                        ? $order->get_shipping_first_name()
+                        : $order->get_billing_first_name()
+                ) ?: 'Cliente',
 
-                "dsnombrecompleto" => !empty($order->get_formatted_shipping_full_name())
-                    ? $order->get_formatted_shipping_full_name()
-                    : (!empty($order->get_formatted_billing_full_name())
-                        ? $order->get_formatted_billing_full_name()
-                        : 'Cliente'),
+                "dsnombrecompleto" => trim(
+                    !empty($order->get_formatted_shipping_full_name())
+                        ? $order->get_formatted_shipping_full_name()
+                        : $order->get_formatted_billing_full_name()
+                ) ?: 'Cliente',
                 "dscorreop"         => $order->get_billing_email(),
                 "dstel"             => $telefono,
                 "dscelular"         => $telefono,
