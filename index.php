@@ -29,7 +29,7 @@ define("AVSHME_TIME_MIN_COTIZAR",5);//en segundos
 define("AVSHME_TIME_MAX_COTIZAR",30);//en segundos
 
 require_once AVSHME_DIR . 'update.php';
-github_updater_plugin_wordpress([
+github_updater_plugin_wordpress_v1([
     'basename'=>AVSHME_BASENAME,
     'dir'=>AVSHME_DIR,
     'file'=>"index.php",
