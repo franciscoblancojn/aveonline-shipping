@@ -59,7 +59,8 @@ function aveonline_shipping_method()
                 if ($r->status == 'ok') {
                     $cuentas =  $r->cuentas;
                     for ($i = 0; $i < count($cuentas); $i++) {
-                        $option_cuenta[$cuentas[$i]->usuarios[0]->id] =  $cuentas[$i]->servicio;
+                        $option_cuenta[$cuentas[$i]->usuarios[0]->id] =  $cuentas[$i]->servicio ?? 
+                        isset($cuentas[$i]->usuarios[0]->razon) ? $cuentas[$i]->usuarios[0]->razon : '';
                     }
 
                     $this->select_cuenta  =   array(
