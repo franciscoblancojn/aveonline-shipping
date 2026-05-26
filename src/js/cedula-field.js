@@ -16,6 +16,33 @@
         return '';
     }
 
+    function validateCedulaValue(val) {
+        val = val.trim();
+        if (!val) return 'Por favor ingrese la cédula';
+        if (!/^\d+$/.test(val)) return 'La cédula debe ser numérica';
+        if (val.length < 6) return 'La cédula debe tener al menos 6 dígitos';
+        if (parseInt(val, 10) <= 0) return 'La cédula debe ser mayor a 0';
+        return null;
+    }
+
+    function setCedulaError(msg) {
+        var input = document.getElementById('avshme_cedula_input');
+        var errorId = 'avshme-cedula-error';
+        var existing = document.getElementById(errorId);
+        if (existing) existing.parentNode.removeChild(existing);
+        if (!input) return;
+        if (msg) {
+            input.style.borderColor = '#cc1818';
+            var span = document.createElement('span');
+            span.id = errorId;
+            span.style.cssText = 'color:#cc1818;font-size:0.85em;display:block;margin-top:0.3em';
+            span.textContent = msg;
+            input.parentNode.appendChild(span);
+        } else {
+            input.style.borderColor = '';
+        }
+    }
+
     function createCedulaHTML(value) {
         var req = required ? ' required' : '';
         var star = required ? ' <span class="required" aria-hidden="true">*</span>' : '';
@@ -56,6 +83,21 @@
         if (!container) return;
 
         container.insertAdjacentHTML('beforeend', createCedulaHTML(''));
+
+        var input = document.getElementById('avshme_cedula_input');
+        if (input) {
+            input.addEventListener('blur', function () {
+                setCedulaError(validateCedulaValue(this.value));
+            });
+            input.addEventListener('input', function () {
+                // Clear error while typing so it doesn't persist after correction
+                var existing = document.getElementById('avshme-cedula-error');
+                if (existing) {
+                    existing.parentNode.removeChild(existing);
+                    this.style.borderColor = '';
+                }
+            });
+        }
     }
 
     /* intercept Store API checkout request -------------------------------- */
@@ -63,7 +105,26 @@
     if (originalFetch) {
         window.fetch = function (input, init) {
             var url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
-            if (url.indexOf('/wc/store/v1/checkout') !== -1) {
+            // Only intercept when we manage the custom field (useNative = false).
+            // When useNative = true, WC Blocks sends aveonline/cedula natively and
+            // the PHP validator handles it — intercepting here would fail because
+            // getCedulaValue() can't find the native WC input.
+            if (!useNative && url.indexOf('/wc/store/v1/checkout') !== -1) {
+                var cedulaError = validateCedulaValue(getCedulaValue());
+                if (cedulaError) {
+                    setCedulaError(cedulaError);
+                    var errBody = JSON.stringify({
+                        code: 'cedula_invalid',
+                        message: cedulaError,
+                        data: { status: 400 }
+                    });
+                    return Promise.resolve(new Response(errBody, {
+                        status: 400,
+                        headers: { 'Content-Type': 'application/json' }
+                    }));
+                }
+                setCedulaError(null);
+
                 if (init && init.body && typeof init.body === 'string') {
                     try {
                         var body = JSON.parse(init.body);

@@ -1,4 +1,22 @@
 <?php
+function AVSHME_validate_cedula_value($cedula)
+{
+    $cedula = trim((string) $cedula);
+    if ($cedula === '') {
+        return __('Por favor ingrese la cédula');
+    }
+    if (!ctype_digit($cedula)) {
+        return __('La cédula debe ser numérica');
+    }
+    if (strlen($cedula) < 6) {
+        return __('La cédula debe tener al menos 6 dígitos');
+    }
+    if (intval($cedula) <= 0) {
+        return __('La cédula debe ser mayor a 0');
+    }
+    return null;
+}
+
 //cedula
 //add
 add_action('woocommerce_before_order_notes', 'AVSHME_cedula_checkout', 10, 1);
@@ -22,8 +40,9 @@ add_action('woocommerce_checkout_process', 'validate_AVSHME_cedula_checkout', 10
 function validate_AVSHME_cedula_checkout()
 {
     if (isActiveAveonlineShipping()) {
-        if (empty($_POST['cedula'])) {
-            wc_add_notice('Por favor ingrese la cédula', 'error');
+        $error = AVSHME_validate_cedula_value($_POST['cedula'] ?? '');
+        if ($error) {
+            wc_add_notice($error, 'error');
         }
     }
 }
@@ -93,7 +112,11 @@ function AVSHME_cedula_additional_field_save($key, $value, $group, $order)
     if (!$order instanceof WC_Order) return;
     if (!isActiveAveonlineShipping()) return;
 
-    $order->update_meta_data('_cedula', sanitize_text_field($value));
+    $sanitized = sanitize_text_field($value);
+    $order->update_meta_data('_cedula', $sanitized);
+    // Also persist via AVSHME_update_options so get_post_meta / get_option
+    // fallbacks in AVSHME_get_options work regardless of HPOS mode.
+    AVSHME_update_options($order->get_id(), '_cedula', $sanitized);
 }
 
 add_action('woocommerce_store_api_checkout_update_order_from_request', 'AVSHME_cedula_store_api_validate', 10, 2);
@@ -106,10 +129,11 @@ function AVSHME_cedula_store_api_validate($order, $request)
     $shipping = $request['shipping_address'] ?? [];
     $cedula = $billing['aveonline/cedula'] ?? $shipping['aveonline/cedula'] ?? '';
 
-    if (empty($cedula)) {
+    $error = AVSHME_validate_cedula_value($cedula);
+    if ($error) {
         throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
-            'cedula_required',
-            __('Por favor ingrese la cédula', 'wc-aveonline-shipping'),
+            'cedula_invalid',
+            __($error, 'wc-aveonline-shipping'),
             400
         );
     }

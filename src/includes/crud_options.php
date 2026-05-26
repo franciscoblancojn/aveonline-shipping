@@ -4,6 +4,13 @@
 function AVSHME_get_options($order_id,$key) {
 	$value = get_post_meta( $order_id, $key, true );
     $value2 = get_option(AVSHME_KEY."_".$key."_".$order_id);
+    if (!$value) {
+        // Fallback: read via WC Order API (compatible with HPOS custom tables)
+        $wc_order = wc_get_order($order_id);
+        if ($wc_order) {
+            $value = $wc_order->get_meta($key, true);
+        }
+    }
     AVSHME_addLogAveonline(array(
         "type"=>"Aveonline_get_options",
         "order_id"=>$order_id,

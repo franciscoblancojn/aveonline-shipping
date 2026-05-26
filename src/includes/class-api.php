@@ -698,7 +698,7 @@ function load_AveonlineAPI()
                 "dscelularre"       => $this->settings['dscelularre'],
                 "dscorreopre"       => $this->settings['dscorreopre'],
 
-                "dsnit"             => AVSHME_get_options($order_id, '_cedula'),
+                "dsnit"             => (int) AVSHME_get_options($order_id, '_cedula'),
                 "dsnombre" => trim(
                     !empty($order->get_shipping_first_name())
                         ? $order->get_shipping_first_name()
@@ -739,6 +739,10 @@ function load_AveonlineAPI()
                 "valorMinimo"       => ($this->settings['valorMinimo'] == "yes") ? 1 : 0,
                 "envioGratis"       => $data['envioGratis'],
             );
+            AVSHME_addLogAveonline(array(
+                "type" => 'AVSHME_generate_guia body',
+                "json_body" => $json_body,
+            ));
 
 
             $json_body = json_encode($json_body);

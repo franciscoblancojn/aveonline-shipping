@@ -124,7 +124,7 @@ function AVSHME_register_contraentrega_blocks()
             wp_register_script(
                 'wc-contraentrega-blocks',
                 AVSHME_URL . 'src/js/contraentrega-blocks.js',
-                ['wc-blocks-registry', 'wc-settings', 'wp-element', 'wp-html-entities'],
+                ['wc-blocks-registry', 'wc-settings', 'wp-element', 'wp-html-entities', 'wp-data'],
                 AVSHME_get_version(),
                 true
             );
