@@ -138,3 +138,37 @@ function AVSHME_cedula_store_api_validate($order, $request)
         );
     }
 }
+
+add_action('woocommerce_store_api_checkout_update_order_from_request', 'AVSHME_validate_payment_shipping_match', 20, 2);
+function AVSHME_validate_payment_shipping_match($order, $request)
+{
+    if (!isActiveAveonlineShipping()) return;
+    if ($request->get_method() !== 'POST') return;
+
+    $payment_method = $request['payment_method'] ?? '';
+    $is_contraentrega_payment = ($payment_method === AVSHME_PAYMENT_CONTRAENTREGA);
+
+    $chosen_shipping = WC()->session ? WC()->session->get('chosen_shipping_methods', []) : [];
+    if (empty($chosen_shipping)) return;
+
+    $selected_rate = reset($chosen_shipping);
+    $is_contraentrega_shipping = strpos((string) $selected_rate, 'wc_contraentrega_on') !== false;
+
+    if ($is_contraentrega_payment === $is_contraentrega_shipping) return;
+
+    if ($is_contraentrega_shipping && !$is_contraentrega_payment) {
+        $payment_gateways = WC()->payment_gateways()->payment_gateways();
+        $payment_title = isset($payment_gateways[$payment_method])
+            ? $payment_gateways[$payment_method]->get_title()
+            : $payment_method;
+        $message = sprintf(__('No puedes seleccionar envío contraentrega con pago "%s"', 'wc-aveonline-shipping'), $payment_title);
+    } else {
+        $message = __('No puedes seleccionar envío normal con pago "Contraentrega Aveonline"', 'wc-aveonline-shipping');
+    }
+
+    throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+        'payment_shipping_mismatch',
+        $message,
+        400
+    );
+}

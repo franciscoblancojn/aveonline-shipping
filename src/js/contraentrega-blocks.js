@@ -33,6 +33,70 @@
         },
     });
 
+    // Payment/shipping mismatch validation via fetch interceptor
+    (function () {
+        var originalFetch = window.fetch;
+        if (!originalFetch) return;
+
+        function getSelectedShippingRateId() {
+            try {
+                var cartStore = window.wp && window.wp.data && window.wp.data.select('wc/store/cart');
+                if (cartStore && typeof cartStore.getShippingRates === 'function') {
+                    var packages = cartStore.getShippingRates();
+                    if (packages && packages.length > 0) {
+                        var rates = packages[0].shipping_rates || [];
+                        for (var i = 0; i < rates.length; i++) {
+                            if (rates[i].selected) return rates[i].rate_id;
+                        }
+                    }
+                }
+            } catch (e) {}
+            return '';
+        }
+
+        function getPaymentMethodLabel(methodId) {
+            try {
+                var registry = window.wc && window.wc.wcBlocksRegistry;
+                if (registry && typeof registry.getPaymentMethods === 'function') {
+                    var methods = registry.getPaymentMethods();
+                    var m = methods && methods[methodId];
+                    if (m) {
+                        if (typeof m.label === 'string') return m.label;
+                        if (typeof m.ariaLabel === 'string') return m.ariaLabel;
+                    }
+                }
+            } catch (e) {}
+            return methodId;
+        }
+
+        window.fetch = function (input, init) {
+            var url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+            if (url.indexOf('/wc/store/v1/checkout') !== -1 && init && init.body) {
+                try {
+                    var body = JSON.parse(init.body);
+                    var paymentMethod = body.payment_method || '';
+                    var isContraentregaPayment = paymentMethod === 'contraentrega';
+                    var rateId = getSelectedShippingRateId();
+                    var isContraentregaShipping = rateId.indexOf('wc_contraentrega_on') !== -1;
+
+                    if (rateId && isContraentregaPayment !== isContraentregaShipping) {
+                        var errorMsg;
+                        if (isContraentregaShipping && !isContraentregaPayment) {
+                            errorMsg = 'No puedes seleccionar envío contraentrega con pago "' + getPaymentMethodLabel(paymentMethod) + '"';
+                        } else {
+                            errorMsg = 'No puedes seleccionar envío normal con pago "' + title + '"';
+                        }
+                        return Promise.resolve(new Response(
+                            JSON.stringify({ code: 'payment_shipping_mismatch', message: errorMsg, data: { status: 400 } }),
+                            { status: 400, headers: { 'Content-Type': 'application/json' } }
+                        ));
+                    }
+                } catch (e) {}
+            }
+            return originalFetch.call(this, input, init);
+        };
+    })();
+
     // Shipping loader when switching between contraentrega and other payment methods
     (function () {
         if (!window.wp || !window.wp.data) return;
