@@ -60,6 +60,15 @@ function show_AVSHME_cedula_checkout($order)
     if (AVSHME_get_options($order_id, '_cedula')) echo '<p><strong>Cedula:</strong> ' . AVSHME_get_options($order_id, '_cedula') . '</p>';
 }
 
+// ========== HIDDEN PAYMENT METHOD FIELD ==========
+
+add_action('woocommerce_after_order_notes', 'AVSHME_payment_method_hidden_field', 10, 1);
+function AVSHME_payment_method_hidden_field($checkout)
+{
+    if (!isActiveAveonlineShipping()) return;
+    echo '<input type="hidden" name="ave_id_payment_method" id="ave_id_payment_method" value="">';
+}
+
 // ========== BLOCKS CHECKOUT SUPPORT ==========
 
 add_action('wp_enqueue_scripts', 'AVSHME_cedula_blocks_enqueue');
