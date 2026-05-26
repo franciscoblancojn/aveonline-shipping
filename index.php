@@ -108,6 +108,13 @@ if ( is_callable('curl_init') &&
             $plugin_version = $plugin_data['Version'];
             return $plugin_version;
         }
+
+        add_action('before_woocommerce_init', function () {
+            if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+                \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('cart_checkout_blocks', __FILE__, true);
+            }
+        });
+
         require_once plugin_dir_path( __FILE__ ) . 'departamentos-y-ciudades-de-colombia-para-woocommerce/departamentos-y-ciudades-de-colombia-para-woocommerce.php';
         require_once plugin_dir_path( __FILE__ ) . 'src/validator/index.php';
         require_once plugin_dir_path( __FILE__ ) . 'src/includes/class-admin.php';

@@ -76,7 +76,7 @@ function AVSHME_register_additional_checkout_field()
             'label' => __('Cédula'),
             'location' => 'address',
             'type' => 'text',
-            'required' => false,
+            'required' => true,
         ));
     } catch (\Exception $e) {
         AVSHME_addLogAveonline(array(
