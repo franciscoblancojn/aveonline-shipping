@@ -107,23 +107,20 @@ function AVSHME_add_JS_CSS_footer()
                 }
 
                 $('form.checkout').on('change', 'input[name="payment_method"]', function() {
-                    var isContraentrega = this.id === 'payment_method_contraentrega';
-                    var wasContraentrega = document.body.classList.contains('wc_contraentrega_on');
-
-                    updateHiddenPaymentMethod(this.value);
-
-                    if (isContraentrega) {
-                        document.body.classList.add('wc_contraentrega_on');
-                    } else {
-                        document.body.classList.remove('wc_contraentrega_on');
+                    
+                    console.log("change payment_method");
+                    if (billing_address_1) {
+                        const v = billing_address_1.value
+						jQuery(document.body).one('updated_checkout', function () {
+							if(billing_address_1.value == "<?= AVSHME_KEY ?>"){
+								billing_address_1.value = v;
+								jQuery(document.body).trigger('update_checkout');
+							}
+						});
+                        billing_address_1.value = "<?= AVSHME_KEY ?>";
+                        jQuery(document.body).trigger('update_checkout');
                     }
-
-                    if (wasContraentrega !== isContraentrega) {
-                        _aveonline_payment_changing = true;
-                        _aveonline_maybe_block();
-                    }
-
-                    $(document.body).trigger('update_checkout');
+                    
                 });
 
                 $(document.body).on('updated_checkout', function() {
