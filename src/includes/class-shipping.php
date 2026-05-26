@@ -58,9 +58,10 @@ function aveonline_shipping_method()
                 $r = $api->autenticarusuario();
                 if ($r->status == 'ok') {
                     $cuentas =  $r->cuentas;
+                    $option_cuenta = [];
                     for ($i = 0; $i < count($cuentas); $i++) {
-                        $option_cuenta[$cuentas[$i]->usuarios[0]->id] =  $cuentas[$i]->servicio ?? 
-                        isset($cuentas[$i]->usuarios[0]->razon) ? $cuentas[$i]->usuarios[0]->razon : '';
+                        $option_cuenta[$cuentas[$i]->usuarios[0]->id] =  $cuentas[$i]->servicio ??
+                            isset($cuentas[$i]->usuarios[0]->razon) ? $cuentas[$i]->usuarios[0]->razon : '';
                     }
 
                     $this->select_cuenta  =   array(
@@ -84,6 +85,7 @@ function aveonline_shipping_method()
 
                     if ($r->status == 'ok') {
                         $agentes =  $r->agentes;
+                        $option_agentes = [];
                         for ($i = 0; $i < count($agentes); $i++) {
                             $option_agentes[$agentes[$i]->id . "_" . $agentes[$i]->idciudad] =  $agentes[$i]->nombre . " " . $agentes[$i]->idciudad;
                         }
@@ -551,7 +553,7 @@ function aveonline_shipping_method()
                     add_tr()
                 }
             </script>
-            <?php
+<?php
             return ob_get_clean();
         }
         public function add_rate_request($r, $request, $envioGratis = false, $contraentregaPayment = 1)
