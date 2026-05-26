@@ -317,6 +317,21 @@
       }
     }
 
+    function getRateIdsSnapshot() {
+      try {
+        var s = window.wp.data.select("wc/store/cart");
+        if (!s || typeof s.getShippingRates !== "function") return null;
+        var p = s.getShippingRates();
+        if (!p || !p.length) return null;
+        var ids = [];
+        for (var i = 0; i < p.length; i++) {
+          var rates = p[i].shipping_rates || [];
+          for (var j = 0; j < rates.length; j++) ids.push(rates[j].rate_id);
+        }
+        return ids.sort().join(",");
+      } catch (e) { return null; }
+    }
+
     function handlePaymentChange(active) {
       var prevContra = lastPayment === "contraentrega";
       var nowContra = active === "contraentrega";
@@ -326,14 +341,29 @@
       if (prevContra !== nowContra) {
         showLoader();
 
-        // Fast path: select matching rate from existing ones
         trySelectMatchingRate(active);
 
-        // Wait for Blocks to update session, then force server recalc
         recalcTimer = setTimeout(function () {
+          var beforeIds = getRateIdsSnapshot();
+
           forceShippingRecalc().then(function () {
             trySelectMatchingRate(active);
-            hideLoader();
+
+            var _check = 0;
+            var _poll = setInterval(function () {
+              _check++;
+              var afterIds = getRateIdsSnapshot();
+              if (afterIds !== null && afterIds !== beforeIds) {
+                clearInterval(_poll);
+                trySelectMatchingRate(active);
+                hideLoader();
+                return;
+              }
+              if (_check >= 60) {
+                clearInterval(_poll);
+                hideLoader();
+              }
+            }, 100);
           });
         }, 800);
       }
