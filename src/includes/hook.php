@@ -1,8 +1,18 @@
 <?php
 
+function AVSHME_is_shortcode_checkout()
+{
+    if (!is_checkout()) return false;
+    $checkout_page_id = wc_get_page_id('checkout');
+    if (!$checkout_page_id) return true;
+    $post = get_post($checkout_page_id);
+    if (!$post) return true;
+    return has_shortcode($post->post_content, 'woocommerce_checkout');
+}
+
 function AVSHME_add_JS_CSS_footer()
 {
-    //return;
+    if (!AVSHME_is_shortcode_checkout()) return;
     if (is_checkout()) {
         wp_enqueue_script('jquery');
 ?>

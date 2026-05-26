@@ -195,7 +195,7 @@ function load_AveonlineAPI()
                         ]
                     }
                  */
-                if (!$transportadora || !isset($auth->status) || $auth->transportadora !== "ok") {
+                if (!$transportadora || !isset($transportadora->status) || $transportadora->status !== "ok") {
                     return null;
                 }
                 return $transportadora;
@@ -206,6 +206,7 @@ function load_AveonlineAPI()
         private function setTransportadora($transportadora)
         {
             try {
+
                 if (!$transportadora || !isset($transportadora->status) || $transportadora->status !== "ok") {
                     return null;
                 }
@@ -423,7 +424,6 @@ function load_AveonlineAPI()
         public function transportadora()
         {
             $transportadora = $this->getTransportadora();
-
             if ($transportadora) {
                 return $transportadora;
             }

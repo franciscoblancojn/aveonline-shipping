@@ -609,7 +609,7 @@ function aveonline_shipping_method()
         public function calculate_shipping($package = array())
         {
             try {
-                if (!is_checkout()) {
+                if (!is_checkout() && !defined('REST_REQUEST')) {
                     return;
                 }
                 if (
