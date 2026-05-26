@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package WoocommerceAveOnlineShipping
  */
@@ -14,28 +15,30 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: wc-aveonline-shipping
 */
 
-if (!function_exists( 'is_plugin_active' ))
-    require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
+if (!function_exists('is_plugin_active'))
+    require_once(ABSPATH . '/wp-admin/includes/plugin.php');
+
+require_once __DIR__ . '/libs/autoload.php';
 
 //AVSHME_
-define("AVSHME_KEY",'AVSHME');
-define("AVSHME_PAYMENT_CONTRAENTREGA",'contraentrega');
-define("AVSHME_LOG",true);
-define("AVSHME_LOG_COUNT",100);
-define("AVSHME_BASENAME",plugin_basename(__FILE__));
-define("AVSHME_DIR",plugin_dir_path( __FILE__ ));
-define("AVSHME_URL",plugin_dir_url(__FILE__));
-define("AVSHME_TIME_MIN_COTIZAR",5);//en segundos
-define("AVSHME_TIME_MAX_COTIZAR",30);//en segundos
+define("AVSHME_KEY", 'AVSHME');
+define("AVSHME_PAYMENT_CONTRAENTREGA", 'contraentrega');
+define("AVSHME_LOG", true);
+define("AVSHME_LOG_COUNT", 100);
+define("AVSHME_BASENAME", plugin_basename(__FILE__));
+define("AVSHME_DIR", plugin_dir_path(__FILE__));
+define("AVSHME_URL", plugin_dir_url(__FILE__));
+define("AVSHME_TIME_MIN_COTIZAR", 5); //en segundos
+define("AVSHME_TIME_MAX_COTIZAR", 30); //en segundos
 
 require_once AVSHME_DIR . 'update.php';
 github_updater_plugin_wordpress_v1([
-    'basename'=>AVSHME_BASENAME,
-    'dir'=>AVSHME_DIR,
-    'file'=>"index.php",
-    'path_repository'=>'franciscoblancojn/aveonline-shipping',
-    'branch'=>'master',
-    'token_array_split'=>[
+    'basename' => AVSHME_BASENAME,
+    'dir' => AVSHME_DIR,
+    'file' => "index.php",
+    'path_repository' => 'franciscoblancojn/aveonline-shipping',
+    'branch' => 'master',
+    'token_array_split' => [
         "g",
         "h",
         "p",
@@ -79,32 +82,39 @@ github_updater_plugin_wordpress_v1([
     ]
 ]);
 
-if ( is_callable('curl_init') && 
-	function_exists('curl_init') && 
-	function_exists('curl_close') && 
-	function_exists('curl_exec') && 
-	function_exists('curl_setopt_array')
-){
-    if(
-        is_plugin_active( 'departamentos-y-ciudades-de-colombia-para-woocommerce/departamentos-y-ciudades-de-colombia-para-woocommerce.php' ) || 
-        is_plugin_active( 'wc-departamentos-y-ciudades-colombia/main.php' ) ||
-        is_plugin_active( 'departamentos-y-ciudades-colombia/main.php' ) || 
-        is_plugin_active( 'wc-departamentos-y-ciudades-colombia/departamentos-y-ciudades-de-colombia-para-woocommerce.php' ) || 
-        is_plugin_active( 'departamentos-y-ciudades-colombia/departamentos-y-ciudades-de-colombia-para-woocommerce.php' ) 
-     ){
-        function AVSHME_log_dycc() {
-            ?>
+use franciscoblancojn\wordpress_utils\FWUSystemLog;
+
+FWUSystemLog::init(AVSHME_KEY);
+
+if (
+    is_callable('curl_init') &&
+    function_exists('curl_init') &&
+    function_exists('curl_close') &&
+    function_exists('curl_exec') &&
+    function_exists('curl_setopt_array')
+) {
+    if (
+        is_plugin_active('departamentos-y-ciudades-de-colombia-para-woocommerce/departamentos-y-ciudades-de-colombia-para-woocommerce.php') ||
+        is_plugin_active('wc-departamentos-y-ciudades-colombia/main.php') ||
+        is_plugin_active('departamentos-y-ciudades-colombia/main.php') ||
+        is_plugin_active('wc-departamentos-y-ciudades-colombia/departamentos-y-ciudades-de-colombia-para-woocommerce.php') ||
+        is_plugin_active('departamentos-y-ciudades-colombia/departamentos-y-ciudades-de-colombia-para-woocommerce.php')
+    ) {
+        function AVSHME_log_dycc()
+        {
+?>
             <div class="notice notice-error is-dismissible">
                 <p>
-                Aveonline Shipping no es compatible con "Departamentos y ciudades colombia", desactivelo para el funcionamiento de Aveonline
+                    Aveonline Shipping no es compatible con "Departamentos y ciudades colombia", desactivelo para el funcionamiento de Aveonline
                 </p>
             </div>
-            <?php
+        <?php
         }
-        add_action( 'admin_notices', 'AVSHME_log_dycc' );
-    }else{
-        function AVSHME_get_version() {
-            $plugin_data = get_plugin_data( __FILE__ );
+        add_action('admin_notices', 'AVSHME_log_dycc');
+    } else {
+        function AVSHME_get_version()
+        {
+            $plugin_data = get_plugin_data(__FILE__);
             $plugin_version = $plugin_data['Version'];
             return $plugin_version;
         }
@@ -115,20 +125,20 @@ if ( is_callable('curl_init') &&
             }
         });
 
-        require_once plugin_dir_path( __FILE__ ) . 'departamentos-y-ciudades-de-colombia-para-woocommerce/departamentos-y-ciudades-de-colombia-para-woocommerce.php';
-        require_once plugin_dir_path( __FILE__ ) . 'src/validator/index.php';
-        require_once plugin_dir_path( __FILE__ ) . 'src/includes/class-admin.php';
+        require_once plugin_dir_path(__FILE__) . 'departamentos-y-ciudades-de-colombia-para-woocommerce/departamentos-y-ciudades-de-colombia-para-woocommerce.php';
+        require_once plugin_dir_path(__FILE__) . 'src/validator/index.php';
+        require_once plugin_dir_path(__FILE__) . 'src/includes/class-admin.php';
     }
-}else{
-    function AVSHME_log_dependencia() {
+} else {
+    function AVSHME_log_dependencia()
+    {
         ?>
         <div class="notice notice-error is-dismissible">
             <p>
-            Aveonline Shipping requiere "Curl"
+                Aveonline Shipping requiere "Curl"
             </p>
         </div>
-        <?php
+<?php
     }
-    add_action( 'admin_notices', 'AVSHME_log_dependencia' );
+    add_action('admin_notices', 'AVSHME_log_dependencia');
 }
-
