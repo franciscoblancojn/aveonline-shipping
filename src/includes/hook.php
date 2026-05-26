@@ -2,11 +2,27 @@
 
 function AVSHME_is_shortcode_checkout()
 {
-    if (!is_checkout()) return false;
-    $checkout_page_id = wc_get_page_id('checkout');
-    if (!$checkout_page_id) return true;
-    $post = get_post($checkout_page_id);
-    if (!$post) return true;
+    // Ignorar admin
+    if (is_admin()) {
+        return false;
+    }
+
+    // Ignorar REST API
+    if (defined('REST_REQUEST') && REST_REQUEST) {
+        return false;
+    }
+
+    // Ignorar AJAX
+    if (wp_doing_ajax()) {
+        return false;
+    }
+
+    global $post;
+
+    if (!$post || empty($post->post_content)) {
+        return false;
+    }
+
     return has_shortcode($post->post_content, 'woocommerce_checkout');
 }
 
