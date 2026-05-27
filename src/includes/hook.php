@@ -40,6 +40,7 @@ function AVSHME_add_JS_CSS_footer()
 ?>
         <script>
             const billing_address_1 = document.getElementById("billing_address_1")
+            const shipping_address_1 = document.getElementById("shipping_address_1")
             let _aveonline_payment_changing = false;
             let _aveonline_block_timer = null;
 
@@ -85,7 +86,9 @@ function AVSHME_add_JS_CSS_footer()
                             '<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">' +
                             '<ul class="woocommerce-error" role="alert"><li>' + error + '</li></ul></div>'
                         );
-                        $('html, body').animate({ scrollTop: $form.offset().top - 100 }, 400);
+                        $('html, body').animate({
+                            scrollTop: $form.offset().top - 100
+                        }, 400);
                         return false;
                     }
                     return true;
@@ -107,20 +110,30 @@ function AVSHME_add_JS_CSS_footer()
                 }
 
                 $('form.checkout').on('change', 'input[name="payment_method"]', function() {
-                    
+
                     console.log("change payment_method");
                     if (billing_address_1) {
                         const v = billing_address_1.value
-						jQuery(document.body).one('updated_checkout', function () {
-							if(billing_address_1.value == "<?= AVSHME_KEY ?>"){
-								billing_address_1.value = v;
-								jQuery(document.body).trigger('update_checkout');
-							}
-						});
+                        let v2 = null;
+                        if (shipping_address_1) {
+                            v2 = shipping_address_1?.value
+                        }
+                        jQuery(document.body).one('updated_checkout', function() {
+                            if (billing_address_1.value == "<?= AVSHME_KEY ?>") {
+                                billing_address_1.value = v;
+                                if (shipping_address_1.value == "<?= AVSHME_KEY ?>" && v2 != null) {
+                                    shipping_address_1.value = v2;
+                                }
+                                jQuery(document.body).trigger('update_checkout');
+                            }
+                        });
                         billing_address_1.value = "<?= AVSHME_KEY ?>";
+                        if (shipping_address_1) {
+                            shipping_address_1.value = "<?= AVSHME_KEY ?>";
+                        }
                         jQuery(document.body).trigger('update_checkout');
                     }
-                    
+
                 });
 
                 $(document.body).on('updated_checkout', function() {
@@ -128,9 +141,9 @@ function AVSHME_add_JS_CSS_footer()
                     if (pm) updateHiddenPaymentMethod(pm.value);
 
                     if (_aveonline_payment_changing) {
-                        var suffix = document.body.classList.contains('wc_contraentrega_on')
-                            ? 'wc_contraentrega_on'
-                            : 'wc_contraentrega_off';
+                        var suffix = document.body.classList.contains('wc_contraentrega_on') ?
+                            'wc_contraentrega_on' :
+                            'wc_contraentrega_off';
                         var elements = document.querySelectorAll('[id*="' + suffix + '"]');
                         var hasVisible = Array.prototype.some.call(elements, function(el) {
                             return getComputedStyle(el).display !== 'none';
