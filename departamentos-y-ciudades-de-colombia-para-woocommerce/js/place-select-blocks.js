@@ -139,14 +139,22 @@
                 select.className = 'city_select';
                 select.style.cssText = [
                     'width:100%',
-                    'padding:0.5em 0.75em',
-                    'font-size:inherit',
-                    'font-family:inherit',
-                    'border:1px solid #767676',
-                    'border-radius:4px',
+                    'appearance:none',
                     'background:#fff',
-                    'color:inherit',
+                    'border:1px solid hsla(0,0%,7%,.8)',
+                    'border-radius:4px',
                     'box-sizing:border-box',
+                    'color:#2b2d2f',
+                    'font-family:inherit',
+                    'font-size:16px',
+                    'font-style:inherit',
+                    'font-weight:inherit',
+                    'height:50px',
+                    'letter-spacing:inherit',
+                    'line-height:25px',
+                    'padding:16px 9px 0',
+                    'text-decoration:inherit',
+                    'text-transform:inherit',
                 ].join(';');
 
                 select.innerHTML = html;
