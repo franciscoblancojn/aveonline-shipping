@@ -58,9 +58,10 @@ function aveonline_shipping_method()
                 $r = $api->autenticarusuario();
                 if ($r->status == 'ok') {
                     $cuentas =  $r->cuentas;
+                    $option_cuenta = [];
                     for ($i = 0; $i < count($cuentas); $i++) {
-                        $option_cuenta[$cuentas[$i]->usuarios[0]->id] =  $cuentas[$i]->servicio ?? 
-                        isset($cuentas[$i]->usuarios[0]->razon) ? $cuentas[$i]->usuarios[0]->razon : '';
+                        $option_cuenta[$cuentas[$i]->usuarios[0]->id] =  $cuentas[$i]->servicio ??
+                            isset($cuentas[$i]->usuarios[0]->razon) ? $cuentas[$i]->usuarios[0]->razon : '';
                     }
 
                     $this->select_cuenta  =   array(
@@ -84,6 +85,7 @@ function aveonline_shipping_method()
 
                     if ($r->status == 'ok') {
                         $agentes =  $r->agentes;
+                        $option_agentes = [];
                         for ($i = 0; $i < count($agentes); $i++) {
                             $option_agentes[$agentes[$i]->id . "_" . $agentes[$i]->idciudad] =  $agentes[$i]->nombre . " " . $agentes[$i]->idciudad;
                         }
@@ -551,7 +553,7 @@ function aveonline_shipping_method()
                     add_tr()
                 }
             </script>
-            <?php
+<?php
             return ob_get_clean();
         }
         public function add_rate_request($r, $request, $envioGratis = false, $contraentregaPayment = 1)
@@ -609,7 +611,7 @@ function aveonline_shipping_method()
         public function calculate_shipping($package = array())
         {
             try {
-                if (!is_checkout()) {
+                if (!is_checkout() && !defined('REST_REQUEST')) {
                     return;
                 }
                 if (
@@ -640,11 +642,32 @@ function aveonline_shipping_method()
                     return;
                 };
                 $payment_method = null;
-                // 1. Primero intenta desde AJAX (checkout update)
-                if (isset($_POST['payment_method'])) {
+                // 1. Hidden field ave_id_payment_method (classic checkout)
+                if (isset($_POST['ave_id_payment_method'])) {
+                    $payment_method = wc_clean($_POST['ave_id_payment_method']);
+                }
+                // 2. REST request body
+                elseif (defined('REST_REQUEST') && REST_REQUEST) {
+                    $raw = @file_get_contents('php://input');
+                    if ($raw) {
+                        $decoded = json_decode($raw, true);
+                        if (is_array($decoded)) {
+                            if (!empty($decoded['ave_id_payment_method'])) {
+                                $payment_method = wc_clean($decoded['ave_id_payment_method']);
+                            } elseif (!empty($decoded['payment_method'])) {
+                                $payment_method = wc_clean($decoded['payment_method']);
+                            }
+                        }
+                    }
+                    if (!$payment_method && WC()->session) {
+                        $payment_method = WC()->session->get('chosen_payment_method');
+                    }
+                }
+                // 3. POST payment_method fallback
+                elseif (isset($_POST['payment_method'])) {
                     $payment_method = wc_clean($_POST['payment_method']);
                 }
-                // 2. Luego desde sesión
+                // 4. Session fallback
                 elseif (WC()->session) {
                     $payment_method = WC()->session->get('chosen_payment_method');
                 }

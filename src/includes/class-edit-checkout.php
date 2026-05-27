@@ -1,4 +1,22 @@
 <?php
+function AVSHME_validate_cedula_value($cedula)
+{
+    $cedula = trim((string) $cedula);
+    if ($cedula === '') {
+        return __('Por favor ingrese la cédula');
+    }
+    if (!ctype_digit($cedula)) {
+        return __('La cédula debe ser numérica');
+    }
+    if (strlen($cedula) < 6) {
+        return __('La cédula debe tener al menos 6 dígitos');
+    }
+    if (intval($cedula) <= 0) {
+        return __('La cédula debe ser mayor a 0');
+    }
+    return null;
+}
+
 //cedula
 //add
 add_action('woocommerce_before_order_notes', 'AVSHME_cedula_checkout', 10, 1);
@@ -22,8 +40,9 @@ add_action('woocommerce_checkout_process', 'validate_AVSHME_cedula_checkout', 10
 function validate_AVSHME_cedula_checkout()
 {
     if (isActiveAveonlineShipping()) {
-        if (empty($_POST['cedula'])) {
-            wc_add_notice('Por favor ingrese la cédula', 'error');
+        $error = AVSHME_validate_cedula_value($_POST['cedula'] ?? '');
+        if ($error) {
+            wc_add_notice($error, 'error');
         }
     }
 }
@@ -39,4 +58,126 @@ function show_AVSHME_cedula_checkout($order)
 {
     $order_id = $order->get_id();
     if (AVSHME_get_options($order_id, '_cedula')) echo '<p><strong>Cedula:</strong> ' . AVSHME_get_options($order_id, '_cedula') . '</p>';
+}
+
+// ========== HIDDEN PAYMENT METHOD FIELD ==========
+
+add_action('woocommerce_after_order_notes', 'AVSHME_payment_method_hidden_field', 10, 1);
+function AVSHME_payment_method_hidden_field($checkout)
+{
+    if (!isActiveAveonlineShipping()) return;
+    echo '<input type="hidden" name="ave_id_payment_method" id="ave_id_payment_method" value="">';
+}
+
+// ========== BLOCKS CHECKOUT SUPPORT ==========
+
+add_action('wp_enqueue_scripts', 'AVSHME_cedula_blocks_enqueue');
+function AVSHME_cedula_blocks_enqueue()
+{
+    if (!is_checkout() || !isActiveAveonlineShipping()) return;
+
+    $use_native = function_exists('woocommerce_register_additional_checkout_field');
+
+    wp_enqueue_script(
+        'avshme-cedula-field',
+        AVSHME_URL . 'src/js/cedula-field.js',
+        array(),
+        '1.0',
+        true
+    );
+
+    wp_localize_script('avshme-cedula-field', 'avshme_cedula_params', array(
+        'label' => __('Cédula'),
+        'required' => true,
+        'use_native' => $use_native,
+    ));
+}
+
+add_action('woocommerce_init', 'AVSHME_register_additional_checkout_field');
+function AVSHME_register_additional_checkout_field()
+{
+    if (!function_exists('woocommerce_register_additional_checkout_field')) return;
+
+    try {
+        woocommerce_register_additional_checkout_field(array(
+            'id' => 'aveonline/cedula',
+            'label' => __('Cédula'),
+            'location' => 'address',
+            'type' => 'text',
+            'required' => true,
+        ));
+    } catch (\Exception $e) {
+        AVSHME_addLogAveonline(array(
+            'type' => 'register_additional_field_error',
+            'message' => $e->getMessage(),
+        ));
+    }
+}
+
+add_action('woocommerce_set_additional_field_value', 'AVSHME_cedula_additional_field_save', 10, 4);
+function AVSHME_cedula_additional_field_save($key, $value, $group, $order)
+{
+    if ($key !== 'aveonline/cedula') return;
+    if (!$order instanceof WC_Order) return;
+    if (!isActiveAveonlineShipping()) return;
+
+    $sanitized = sanitize_text_field($value);
+    $order->update_meta_data('_cedula', $sanitized);
+    // Also persist via AVSHME_update_options so get_post_meta / get_option
+    // fallbacks in AVSHME_get_options work regardless of HPOS mode.
+    AVSHME_update_options($order->get_id(), '_cedula', $sanitized);
+}
+
+add_action('woocommerce_store_api_checkout_update_order_from_request', 'AVSHME_cedula_store_api_validate', 10, 2);
+function AVSHME_cedula_store_api_validate($order, $request)
+{
+    if (!isActiveAveonlineShipping()) return;
+    if ($request->get_method() !== 'POST') return;
+
+    $billing = $request['billing_address'] ?? [];
+    $shipping = $request['shipping_address'] ?? [];
+    $cedula = $billing['aveonline/cedula'] ?? $shipping['aveonline/cedula'] ?? '';
+
+    $error = AVSHME_validate_cedula_value($cedula);
+    if ($error) {
+        throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+            'cedula_invalid',
+            __($error, 'wc-aveonline-shipping'),
+            400
+        );
+    }
+}
+
+add_action('woocommerce_store_api_checkout_update_order_from_request', 'AVSHME_validate_payment_shipping_match', 20, 2);
+function AVSHME_validate_payment_shipping_match($order, $request)
+{
+    if (!isActiveAveonlineShipping()) return;
+    if ($request->get_method() !== 'POST') return;
+
+    $payment_method = $request['payment_method'] ?? '';
+    $is_contraentrega_payment = ($payment_method === AVSHME_PAYMENT_CONTRAENTREGA);
+
+    $chosen_shipping = WC()->session ? WC()->session->get('chosen_shipping_methods', []) : [];
+    if (empty($chosen_shipping)) return;
+
+    $selected_rate = reset($chosen_shipping);
+    $is_contraentrega_shipping = strpos((string) $selected_rate, 'wc_contraentrega_on') !== false;
+
+    if ($is_contraentrega_payment === $is_contraentrega_shipping) return;
+
+    if ($is_contraentrega_shipping && !$is_contraentrega_payment) {
+        $payment_gateways = WC()->payment_gateways()->payment_gateways();
+        $payment_title = isset($payment_gateways[$payment_method])
+            ? $payment_gateways[$payment_method]->get_title()
+            : $payment_method;
+        $message = sprintf(__('No puedes seleccionar envío contraentrega con pago "%s"', 'wc-aveonline-shipping'), $payment_title);
+    } else {
+        $message = __('No puedes seleccionar envío normal con pago "Contraentrega Aveonline"', 'wc-aveonline-shipping');
+    }
+
+    throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+        'payment_shipping_mismatch',
+        $message,
+        400
+    );
 }

@@ -246,6 +246,9 @@ class WC_States_Places_Colombia
                 'cities' => $places,
                 'i18n_select_city_text' => esc_attr__( 'Select an option&hellip;', 'woocommerce' )
             ) );
+
+            $city_select_blocks_path = self::get_plugin_url() . 'js/place-select-blocks.js';
+            wp_enqueue_script( 'wc-city-select-blocks', $city_select_blocks_path, array( 'wc-city-select' ), self::VERSION, true );
         }
     }
 

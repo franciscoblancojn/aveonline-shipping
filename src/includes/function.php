@@ -8642,28 +8642,9 @@ function AVSHME_calculate_package($table_package, $data_product)
 }
 
 
-function AVSHME_getLogAveonline()
-{
-    if (!AVSHME_LOG) {
-        return [];
-    }
-    $log = get_option("AVSHME_log","[]");
-    if ($log === false || $log == null || $log == "") {
-        $log = "[]";
-    }
-    $log = json_decode($log,true);
-    return $log;
-}
+use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
 function AVSHME_addLogAveonline($newLog)
 {
-    if (!AVSHME_LOG) {
-        return;
-    }
-    $type = str_replace(" ","_",strtoupper($newLog['type'] ?? "NO_TIPE"));
-    $log = AVSHME_getLogAveonline();
-    $log[$type]??=[];
-    $log[$type][] = $newLog;
-    $log[$type] = array_slice($log[$type], -1 * AVSHME_LOG_COUNT, AVSHME_LOG_COUNT);
-    update_option("AVSHME_log", json_encode($log));
+    FWUSystemLog::add(AVSHME_KEY, $newLog);
 }

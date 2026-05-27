@@ -100,6 +100,52 @@ function AVSHME_woocommerce_Contraentrega_gateway()
 }
 add_action('plugins_loaded', 'AVSHME_woocommerce_Contraentrega_gateway', 0);
 
+add_action('woocommerce_blocks_loaded', 'AVSHME_register_contraentrega_blocks');
+function AVSHME_register_contraentrega_blocks()
+{
+    if (!class_exists('\Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType')) return;
+
+    class WC_Contraentrega_Blocks_Support extends \Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType
+    {
+        protected $name = 'contraentrega';
+
+        public function initialize()
+        {
+            $this->settings = get_option('woocommerce_contraentrega_settings', []);
+        }
+
+        public function is_active()
+        {
+            return 'yes' === $this->get_setting('enabled', 'yes');
+        }
+
+        public function get_payment_method_script_handles()
+        {
+            wp_register_script(
+                'wc-contraentrega-blocks',
+                AVSHME_URL . 'src/js/contraentrega-blocks.js',
+                ['wc-blocks-registry', 'wc-settings', 'wp-element', 'wp-html-entities', 'wp-data'],
+                AVSHME_get_version(),
+                true
+            );
+            return ['wc-contraentrega-blocks'];
+        }
+
+        public function get_payment_method_data()
+        {
+            return [
+                'title'       => $this->get_setting('title', 'Contraentrega Aveonline'),
+                'description' => $this->get_setting('description', ''),
+                'supports'    => $this->get_supported_features(),
+            ];
+        }
+    }
+
+    add_action('woocommerce_blocks_payment_method_type_registration', function ($registry) {
+        $registry->register(new WC_Contraentrega_Blocks_Support());
+    });
+}
+
 add_filter( 'woocommerce_available_payment_gateways', 'AVSHME_desactivar_wc_payment_gateway' );
 
 function AVSHME_desactivar_wc_payment_gateway( $available_gateways ) {

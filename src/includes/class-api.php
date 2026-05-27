@@ -195,7 +195,7 @@ function load_AveonlineAPI()
                         ]
                     }
                  */
-                if (!$transportadora || !isset($auth->status) || $auth->transportadora !== "ok") {
+                if (!$transportadora || !isset($transportadora->status) || $transportadora->status !== "ok") {
                     return null;
                 }
                 return $transportadora;
@@ -206,6 +206,7 @@ function load_AveonlineAPI()
         private function setTransportadora($transportadora)
         {
             try {
+
                 if (!$transportadora || !isset($transportadora->status) || $transportadora->status !== "ok") {
                     return null;
                 }
@@ -423,7 +424,6 @@ function load_AveonlineAPI()
         public function transportadora()
         {
             $transportadora = $this->getTransportadora();
-
             if ($transportadora) {
                 return $transportadora;
             }
@@ -698,7 +698,7 @@ function load_AveonlineAPI()
                 "dscelularre"       => $this->settings['dscelularre'],
                 "dscorreopre"       => $this->settings['dscorreopre'],
 
-                "dsnit"             => AVSHME_get_options($order_id, '_cedula'),
+                "dsnit"             => (int) AVSHME_get_options($order_id, '_cedula'),
                 "dsnombre" => trim(
                     !empty($order->get_shipping_first_name())
                         ? $order->get_shipping_first_name()
@@ -739,6 +739,10 @@ function load_AveonlineAPI()
                 "valorMinimo"       => ($this->settings['valorMinimo'] == "yes") ? 1 : 0,
                 "envioGratis"       => $data['envioGratis'],
             );
+            AVSHME_addLogAveonline(array(
+                "type" => 'AVSHME_generate_guia body',
+                "json_body" => $json_body,
+            ));
 
 
             $json_body = json_encode($json_body);
