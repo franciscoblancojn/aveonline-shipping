@@ -1,12 +1,12 @@
 {
   "name": "aveonline-shipping",
-  "version": "3.7.1",
+  "version": "4.0.0",
   "description": "Integración de woocommerce con los servicios de envío de Aveonline.",
   "main": "index.js",
   "scripts": {
     "v": "grep -i \"Version:\" index.php | sed 's/.*Version:[[:space:]]*//'",
     "sync:package": "VERSION=$(npm run -s v) && npm version $VERSION --no-git-tag-version",
-    "sync:readme": "VERSION=$(npm run -s v) && sed -i \"s/^Stable tag:.*/Stable tag: $VERSION/\" README.md",
+    "sync:readme": "VERSION=$(npm run -s v) && sed -i \"s/^\\*\\*Stable tag:\\*\\*.*/**Stable tag:** $VERSION/\" README.md",
     "sync:version": "npm run sync:package && npm run sync:readme",
     "push-tag": "npm run sync:version && VERSION=$(npm run -s v) && git add . && git commit -m \"Release $VERSION\" && git tag $VERSION && git push origin master && git push origin $VERSION",
     "rm-composer": "echo 'off' || true || rm -r vendor/composer || true",
