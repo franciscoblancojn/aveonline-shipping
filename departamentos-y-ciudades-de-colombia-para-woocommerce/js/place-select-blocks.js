@@ -34,24 +34,40 @@
             || document.querySelector('[name="' + hyphen + '"]');
     }
 
-    function findCityInput() {
-        var el = findDedicatedField('shipping', 'city');
+    function findCityInput(prefix) {
+        var el = findDedicatedField(prefix, 'city');
         if (el) return el;
-        el = document.querySelector('[autocomplete="address-level2"]');
-        if (el) return el;
-        el = document.querySelector('[data-autocomplete="address-level2"]');
-        if (el) return el;
+        if (prefix === 'shipping') {
+            el = document.querySelector('[autocomplete="address-level2"]');
+            if (el) return el;
+            el = document.querySelector('[data-autocomplete="address-level2"]');
+            if (el) return el;
+        }
         return null;
     }
 
-    function getCitySelect() {
-        return document.getElementById('avshme_city_select');
+    function findCountryState(prefix) {
+        var country = findDedicatedField(prefix, 'country')
+            || document.querySelector('[autocomplete="country"]')
+            || document.querySelector('[data-autocomplete="country"]');
+        var state = findDedicatedField(prefix, 'state')
+            || document.querySelector('[autocomplete="address-level1"]')
+            || document.querySelector('[data-autocomplete="address-level1"]');
+        return { country: country, state: state };
     }
 
-    function getCityValue() {
-        var sel = getCitySelect();
+    function getCitySelectId(prefix) {
+        return 'avshme_city_select_' + prefix;
+    }
+
+    function getCitySelect(prefix) {
+        return document.getElementById(getCitySelectId(prefix));
+    }
+
+    function getCityValue(prefix) {
+        var sel = getCitySelect(prefix);
         if (sel) return sel.value;
-        var input = findCityInput();
+        var input = findCityInput(prefix);
         return input ? input.value : '';
     }
 
@@ -66,14 +82,13 @@
                 if (init && init.body && typeof init.body === 'string') {
                     try {
                         var body = JSON.parse(init.body);
-                        var city = getCityValue();
-                        if (city) {
-                            if (body.shipping_address) {
-                                body.shipping_address.city = city;
-                            }
-                            if (body.billing_address) {
-                                body.billing_address.city = city;
-                            }
+                        var shippingCity = getCityValue('shipping');
+                        var billingCity = getCityValue('billing');
+                        if (shippingCity && body.shipping_address) {
+                            body.shipping_address.city = shippingCity;
+                        }
+                        if (billingCity && body.billing_address) {
+                            body.billing_address.city = billingCity;
                         }
                         init.body = JSON.stringify(body);
                     } catch (e) { }
@@ -85,100 +100,97 @@
 
     /* city <select> injection -------------------------------------------- */
     var _updating = false;
-    var _lastHtml = '';
 
     function updateCitySelect() {
         if (_updating) return;
         _updating = true;
 
         try {
-            var cityEl = findCityInput();
-            if (!cityEl) return;
-
-            var countryEl = document.getElementById('shipping-country')
-                || document.querySelector('[autocomplete="country"]')
-                || document.querySelector('[data-autocomplete="country"]')
-                || document.getElementById('billing-country');
-            var stateEl = document.getElementById('shipping-state')
-                || document.querySelector('[autocomplete="address-level1"]')
-                || document.querySelector('[data-autocomplete="address-level1"]')
-                || document.getElementById('billing-state');
-
-            var country = countryEl ? countryEl.value : 'CO';
-            var state = stateEl ? stateEl.value : '';
-            var list = getCities(country, state);
-
-            var existingSelect = getCitySelect();
-
-            if (!list || list.length === 0) {
-                cityEl.style.removeProperty('display');
-                if (existingSelect) {
-                    existingSelect.style.display = 'none';
-                }
-                return;
-            }
-
-            var currentValue = existingSelect ? existingSelect.value : cityEl.value;
-
-            var html = '<option value="">' + i18nSelect + '</option>';
-            for (var i = 0; i < list.length; i++) {
-                if (typeof list[i] !== 'string') continue;
-                html += '<option value="' + list[i] + '"'
-                    + (list[i] === currentValue ? ' selected' : '')
-                    + '>' + list[i] + '</option>';
-            }
-
-            if (existingSelect) {
-                if (existingSelect.innerHTML !== html) {
-                    existingSelect.innerHTML = html;
-                }
-                existingSelect.style.display = '';
-            } else {
-                var select = document.createElement('select');
-                select.id = 'avshme_city_select';
-                select.className = 'city_select';
-                select.style.cssText = [
-                    'width:100%',
-                    'appearance:none',
-                    'background:#fff',
-                    'border:1px solid hsla(0,0%,7%,.8)',
-                    'border-radius:4px',
-                    'box-sizing:border-box',
-                    'color:#2b2d2f',
-                    'font-family:inherit',
-                    'font-size:16px',
-                    'font-style:inherit',
-                    'font-weight:inherit',
-                    'height:50px',
-                    'letter-spacing:inherit',
-                    'line-height:25px',
-                    'padding:16px 9px 0',
-                    'text-decoration:inherit',
-                    'text-transform:inherit',
-                ].join(';');
-
-                select.innerHTML = html;
-                select.addEventListener('change', function () {
-                    if (cityEl.value !== this.value) {
-                        // Use native setter to properly trigger React's internal state tracker.
-                        // Direct assignment (cityEl.value = x) bypasses React's synthetic event
-                        // system and the city never reaches the Store API update-customer request.
-                        var nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                            window.HTMLInputElement.prototype, 'value'
-                        ).set;
-                        nativeInputValueSetter.call(cityEl, this.value);
-                        cityEl.dispatchEvent(new Event('input', { bubbles: true }));
-                        cityEl.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                });
-
-                cityEl.parentNode.insertBefore(select, cityEl);
-            }
-
-            cityEl.style.display = 'none';
+            updateCitySelectForPrefix('billing');
+            updateCitySelectForPrefix('shipping');
         } finally {
             _updating = false;
         }
+    }
+
+    function updateCitySelectForPrefix(prefix) {
+        var cityEl = findCityInput(prefix);
+        if (!cityEl) return;
+
+        var cs = findCountryState(prefix);
+        var countryEl = cs.country;
+        var stateEl = cs.state;
+
+        var country = countryEl ? countryEl.value : 'CO';
+        var state = stateEl ? stateEl.value : '';
+        var list = getCities(country, state);
+
+        var selectId = getCitySelectId(prefix);
+        var existingSelect = document.getElementById(selectId);
+
+        if (!list || list.length === 0) {
+            cityEl.style.removeProperty('display');
+            if (existingSelect) {
+                existingSelect.style.display = 'none';
+            }
+            return;
+        }
+
+        var currentValue = existingSelect ? existingSelect.value : cityEl.value;
+
+        var html = '<option value="">' + i18nSelect + '</option>';
+        for (var i = 0; i < list.length; i++) {
+            if (typeof list[i] !== 'string') continue;
+            html += '<option value="' + list[i] + '"'
+                + (list[i] === currentValue ? ' selected' : '')
+                + '>' + list[i] + '</option>';
+        }
+
+        if (existingSelect) {
+            if (existingSelect.innerHTML !== html) {
+                existingSelect.innerHTML = html;
+            }
+            existingSelect.style.display = '';
+        } else {
+            var select = document.createElement('select');
+            select.id = selectId;
+            select.className = 'city_select';
+            select.style.cssText = [
+                'width:100%',
+                'appearance:none',
+                'background:#fff',
+                'border:1px solid hsla(0,0%,7%,.8)',
+                'border-radius:4px',
+                'box-sizing:border-box',
+                'color:#2b2d2f',
+                'font-family:inherit',
+                'font-size:16px',
+                'font-style:inherit',
+                'font-weight:inherit',
+                'height:50px',
+                'letter-spacing:inherit',
+                'line-height:25px',
+                'padding:16px 9px 0',
+                'text-decoration:inherit',
+                'text-transform:inherit',
+            ].join(';');
+
+            select.innerHTML = html;
+            select.addEventListener('change', function () {
+                if (cityEl.value !== this.value) {
+                    var nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                        window.HTMLInputElement.prototype, 'value'
+                    ).set;
+                    nativeInputValueSetter.call(cityEl, this.value);
+                    cityEl.dispatchEvent(new Event('input', { bubbles: true }));
+                    cityEl.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+
+            cityEl.parentNode.insertBefore(select, cityEl);
+        }
+
+        cityEl.style.display = 'none';
     }
 
     /* initialization ----------------------------------------------------- */
