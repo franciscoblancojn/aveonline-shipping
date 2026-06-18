@@ -271,7 +271,7 @@ function aveonline_shipping_method()
                 'tag_maxTime' => array(
                     'id'    => 'tag',
                     'type'  => 'tag',
-                    'title' => __('Tiempo de Cotizacion'),
+                    'title' => __('Configuracion de Cotizacion'),
                 ),
                 'maxTimeCotizar' => array(
                     'title' => __('Tiempo maximo de cotizacion'),
@@ -281,6 +281,12 @@ function aveonline_shipping_method()
                         'step'  => 'any',
                         'min'   => AVSHME_TIME_MIN_COTIZAR
                     )
+                ),
+                'cotizadorCarrito' => array(
+                    'title' => __('Permitir cotizador en carrito'),
+                    'type' => 'checkbox',
+                    'desc_tip' => __('Permite cotizar en la página del carrito'),
+                    'default' => 'no',
                 ),
             );
         }
@@ -611,7 +617,8 @@ function aveonline_shipping_method()
         public function calculate_shipping($package = array())
         {
             try {
-                if (!is_checkout() && !defined('REST_REQUEST')) {
+                $cotizadorCarrito = isset($this->settings['cotizadorCarrito']) && $this->settings['cotizadorCarrito'] === 'yes';
+                if (!is_checkout() && !(is_cart() && $cotizadorCarrito) && !defined('REST_REQUEST')) {
                     return;
                 }
                 if (
