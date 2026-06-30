@@ -21,7 +21,8 @@
     "mv-post": "mv vendor libs",
     "update": "npm run rm-vendor && npm run install",
     "install": "composer install --no-dev --optimize-autoloader && npm run rm-post && npm run mv-post",
-    "optimize": "composer install --no-dev --optimize-autoloader"
+    "optimize": "composer install --no-dev --optimize-autoloader",
+    "push":"git push && git push ave"
   },
   "repository": {
     "type": "git",
