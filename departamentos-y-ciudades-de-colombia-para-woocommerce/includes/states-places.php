@@ -47,6 +47,34 @@ class WC_States_Places_Colombia
         add_filter( 'woocommerce_form_field_city', array( $this, 'wc_form_field_city' ), 10, 4 );
 
         add_action( 'wp_enqueue_scripts', array( $this, 'load_scripts' ) );
+        add_action( 'template_redirect', array( $this, 'maybe_clear_customer_city' ) );
+    }
+
+    /**
+     * When "Guardar ciudad seleccionada" is disabled, wipe the city stored on
+     * the customer session/account on every fresh cart/checkout page load, so
+     * shipping isn't calculated against a city the customer didn't choose in
+     * the current visit. Store API requests (blocks add-to-cart/checkout
+     * calls) never hit this hook, only real page loads do, so it doesn't
+     * fight the customer's in-session selection.
+     */
+    public function maybe_clear_customer_city()
+    {
+        if ( self::save_selected_city_enabled() ) {
+            return;
+        }
+
+        if ( ! ( is_cart() || is_checkout() || is_wc_endpoint_url( 'edit-address' ) ) ) {
+            return;
+        }
+
+        if ( ! function_exists( 'WC' ) || ! WC()->customer ) {
+            return;
+        }
+
+        WC()->customer->set_shipping_city( '' );
+        WC()->customer->set_billing_city( '' );
+        WC()->customer->save();
     }
 
     /**
@@ -106,6 +134,10 @@ class WC_States_Places_Colombia
      */
     public function wc_form_field_city($field, $key, $args, $value )
     {
+        if ( ( $key === 'shipping_city' || $key === 'billing_city' ) && ! self::save_selected_city_enabled() ) {
+            $value = '';
+        }
+
 // Do we need a clear div?
         if ( ( ! empty( $args['clear'] ) ) ) {
             $after = '<div class="clear"></div>';
@@ -244,12 +276,25 @@ class WC_States_Places_Colombia
             $places = json_encode( self::get_places() );
             wp_localize_script( 'wc-city-select', 'wc_city_select_params', array(
                 'cities' => $places,
-                'i18n_select_city_text' => esc_attr__( 'Select an option&hellip;', 'woocommerce' )
+                'i18n_select_city_text' => esc_attr__( 'Select an option&hellip;', 'woocommerce' ),
+                'save_selected_city' => self::save_selected_city_enabled() ? '1' : '0',
             ) );
 
             $city_select_blocks_path = self::get_plugin_url() . 'js/place-select-blocks.js';
             wp_enqueue_script( 'wc-city-select-blocks', $city_select_blocks_path, array( 'wc-city-select' ), self::VERSION, true );
         }
+    }
+
+    /**
+     * Whether the aveonline shipping method is configured to remember the
+     * customer's previously selected shipping city on checkout.
+     * @return bool
+     */
+    private static function save_selected_city_enabled()
+    {
+        $settings = get_option( 'woocommerce_wc_aveonline_shipping_settings', array() );
+
+        return ! isset( $settings['guardarCiudadSeleccionada'] ) || $settings['guardarCiudadSeleccionada'] !== 'no';
     }
 
     /**

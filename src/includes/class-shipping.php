@@ -288,6 +288,17 @@ function aveonline_shipping_method()
                     'desc_tip' => __('Permite cotizar en la página del carrito'),
                     'default' => 'no',
                 ),
+                'tag_configuracionesCheckout' => array(
+                    'id'    => 'tag',
+                    'type'  => 'tag',
+                    'title' => __('Configuraciones de Checkout'),
+                ),
+                'guardarCiudadSeleccionada' => array(
+                    'title' => __('Guardar ciudad seleccionada'),
+                    'type' => 'checkbox',
+                    'desc_tip' => __('Si está activo, los campos de ciudad de envío y facturación en el checkout se precargan con la última ciudad que el cliente seleccionó. Si está inactivo, los campos aparecen vacíos.'),
+                    'default' => 'yes',
+                ),
             );
         }
         public function isEnvioGratis($price = 0)

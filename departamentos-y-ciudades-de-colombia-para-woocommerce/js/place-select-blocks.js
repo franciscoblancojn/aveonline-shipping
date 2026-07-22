@@ -9,6 +9,26 @@
     } catch (e) { return; }
 
     var i18nSelect = wc_city_select_params.i18n_select_city_text || 'Select an option\u2026';
+    var saveSelectedCity = wc_city_select_params.save_selected_city !== '0';
+    var userSelectedCity = { billing: false, shipping: false };
+
+    function nativeSetValue(el, value) {
+        var setter = Object.getOwnPropertyDescriptor( window.HTMLInputElement.prototype, 'value' ).set;
+        el._avshmeClearing = true;
+        setter.call( el, value );
+        el.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+        el.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+        el._avshmeClearing = false;
+    }
+
+    function watchUserInteraction( cityEl, prefix ) {
+        if ( cityEl._avshmeWatched ) return;
+        cityEl._avshmeWatched = true;
+        cityEl.addEventListener( 'input', function () {
+            if ( cityEl._avshmeClearing ) return;
+            userSelectedCity[ prefix ] = true;
+        } );
+    }
 
     /* helpers ------------------------------------------------------------ */
     function isBlockCheckout() {
@@ -84,10 +104,14 @@
                         var body = JSON.parse(init.body);
                         var shippingCity = getCityValue('shipping');
                         var billingCity = getCityValue('billing');
-                        if (shippingCity && body.shipping_address) {
+                        var forceEmptyShipping = !saveSelectedCity && !userSelectedCity.shipping;
+                        var forceEmptyBilling = !saveSelectedCity && !userSelectedCity.billing;
+                        if (forceEmptyShipping) shippingCity = '';
+                        if (forceEmptyBilling) billingCity = '';
+                        if (body.shipping_address && (shippingCity || forceEmptyShipping)) {
                             body.shipping_address.city = shippingCity;
                         }
-                        if (billingCity && body.billing_address) {
+                        if (body.billing_address && (billingCity || forceEmptyBilling)) {
                             body.billing_address.city = billingCity;
                         }
                         init.body = JSON.stringify(body);
@@ -116,6 +140,12 @@
     function updateCitySelectForPrefix(prefix) {
         var cityEl = findCityInput(prefix);
         if (!cityEl) return;
+
+        watchUserInteraction(cityEl, prefix);
+
+        if (!saveSelectedCity && !userSelectedCity[prefix] && cityEl.value) {
+            nativeSetValue(cityEl, '');
+        }
 
         var cs = findCountryState(prefix);
         var countryEl = cs.country;
@@ -177,13 +207,9 @@
 
             select.innerHTML = html;
             select.addEventListener('change', function () {
+                userSelectedCity[prefix] = true;
                 if (cityEl.value !== this.value) {
-                    var nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                        window.HTMLInputElement.prototype, 'value'
-                    ).set;
-                    nativeInputValueSetter.call(cityEl, this.value);
-                    cityEl.dispatchEvent(new Event('input', { bubbles: true }));
-                    cityEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    nativeSetValue(cityEl, this.value);
                 }
             });
 
