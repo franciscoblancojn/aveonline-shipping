@@ -1,6 +1,6 @@
 {
   "name": "aveonline-shipping",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "Integración de woocommerce con los servicios de envío de Aveonline.",
   "main": "index.js",
   "scripts": {
@@ -22,7 +22,7 @@
     "update": "npm run rm-vendor && npm run install",
     "install": "composer install --no-dev --optimize-autoloader && npm run rm-post && npm run mv-post",
     "optimize": "composer install --no-dev --optimize-autoloader",
-    "push":"git push && git push ave"
+    "push": "git push && git push ave"
   },
   "repository": {
     "type": "git",
