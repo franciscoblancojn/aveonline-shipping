@@ -11,6 +11,7 @@
     var i18nSelect = wc_city_select_params.i18n_select_city_text || 'Select an option\u2026';
     var saveSelectedCity = wc_city_select_params.save_selected_city !== '0';
     var userSelectedCity = { billing: false, shipping: false };
+    var clearedOnLoad = { billing: false, shipping: false };
 
     function nativeSetValue(el, value) {
         var setter = Object.getOwnPropertyDescriptor( window.HTMLInputElement.prototype, 'value' ).set;
@@ -143,7 +144,8 @@
 
         watchUserInteraction(cityEl, prefix);
 
-        if (!saveSelectedCity && !userSelectedCity[prefix] && cityEl.value) {
+        if (!saveSelectedCity && !userSelectedCity[prefix] && !clearedOnLoad[prefix] && cityEl.value) {
+            clearedOnLoad[prefix] = true;
             nativeSetValue(cityEl, '');
         }
 
@@ -166,7 +168,17 @@
             return;
         }
 
+        if (existingSelect && document.activeElement === existingSelect) {
+            return;
+        }
+
         var currentValue = existingSelect ? existingSelect.value : cityEl.value;
+        var signature = country + '||' + state + '||' + list.join(',') + '||' + currentValue;
+
+        if (existingSelect && existingSelect._avshmeSignature === signature) {
+            existingSelect.style.display = '';
+            return;
+        }
 
         var html = '<option value="">' + i18nSelect + '</option>';
         for (var i = 0; i < list.length; i++) {
@@ -177,9 +189,8 @@
         }
 
         if (existingSelect) {
-            if (existingSelect.innerHTML !== html) {
-                existingSelect.innerHTML = html;
-            }
+            existingSelect.innerHTML = html;
+            existingSelect._avshmeSignature = signature;
             existingSelect.style.display = '';
         } else {
             var select = document.createElement('select');
@@ -206,6 +217,7 @@
             ].join(';');
 
             select.innerHTML = html;
+            select._avshmeSignature = signature;
             select.addEventListener('change', function () {
                 userSelectedCity[prefix] = true;
                 if (cityEl.value !== this.value) {
