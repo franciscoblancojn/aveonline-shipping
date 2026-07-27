@@ -81,8 +81,21 @@
 
     elBodyDPWoo.on( 'country_to_state_changing', function(e, country, $container) {
     var $statebox = $container.find( '#billing_state, #shipping_state, #calc_shipping_state' );
+    $statebox.prop( 'disabled', !country );
     var state = $statebox.val();
     $( document.body ).trigger( 'state_changing', [country, state, $container ] );
+  });
+
+  /* keep department disabled until a country is already selected on load */
+  $( function() {
+    $( '.woocommerce-billing-fields, .woocommerce-shipping-fields, .woocommerce-address-fields, .woocommerce-shipping-calculator' ).each( function() {
+      var $wrapper = $( this );
+      var $countrybox = $wrapper.find( '#billing_country, #shipping_country, #calc_shipping_country' );
+
+      if ( $countrybox.length ) {
+        $wrapper.find( '#billing_state, #shipping_state, #calc_shipping_state' ).prop( 'disabled', !$countrybox.val() );
+      }
+    });
   });
 
     elBodyDPWoo.on( 'change', 'select.state_select, #calc_shipping_state', function() {

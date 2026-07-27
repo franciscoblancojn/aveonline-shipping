@@ -92,6 +92,29 @@
         return input ? input.value : '';
     }
 
+    function setDisabled(el, disabled) {
+        if (!el || el.disabled === disabled) return;
+        el.disabled = disabled;
+    }
+
+    /* keep department disabled until country is chosen, and city disabled
+       until department is chosen (applies to both the text input and the
+       injected select) ------------------------------------------------- */
+    function updateDependentDisabling(prefix) {
+        var cs = findCountryState(prefix);
+        var countryEl = cs.country;
+        var stateEl = cs.state;
+        var cityEl = findCityInput(prefix);
+        var citySelect = getCitySelect(prefix);
+
+        var hasCountry = countryEl ? !!countryEl.value : true;
+        setDisabled(stateEl, !hasCountry);
+
+        var hasState = stateEl ? !!stateEl.value : hasCountry;
+        setDisabled(cityEl, !hasCountry || !hasState);
+        setDisabled(citySelect, !hasCountry || !hasState);
+    }
+
     /* fetch interception: inject city into Store API request body ---------- */
     var originalFetch = window.fetch;
     if (originalFetch) {
@@ -131,6 +154,8 @@
         _updating = true;
 
         try {
+            updateDependentDisabling('billing');
+            updateDependentDisabling('shipping');
             updateCitySelectForPrefix('billing');
             updateCitySelectForPrefix('shipping');
         } finally {
