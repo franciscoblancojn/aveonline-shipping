@@ -7,7 +7,7 @@
 Plugin Name: Aveonline Shipping
 Plugin URI: https://github.com/franciscoblancojn/aveonline-shipping
 Description: Integración de woocommerce con los servicios de envío de Aveonline.
-Version: 4.1.1
+Version: 4.1.2
 Author: franciscoblancojn
 Author URI: https://franciscoblanco.vercel.app/
 License: GPL2+
