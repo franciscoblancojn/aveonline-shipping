@@ -94,6 +94,20 @@ if (
     function_exists('curl_setopt_array')
 ) {
     if (
+        is_plugin_active('woo-checkout-field-editor-pro/checkout-form-designer.php')
+    ) {
+        function AVSHME_log_thcf()
+        {
+?>
+            <div class="notice notice-error is-dismissible">
+                <p>
+                    Aveonline Shipping no es compatible con "Checkout Field Editor for WooCommerce", desactívelo para el funcionamiento de Aveonline
+                </p>
+            </div>
+        <?php
+        }
+        add_action('admin_notices', 'AVSHME_log_thcf');
+    } else if (
         is_plugin_active('departamentos-y-ciudades-de-colombia-para-woocommerce/departamentos-y-ciudades-de-colombia-para-woocommerce.php') ||
         is_plugin_active('wc-departamentos-y-ciudades-colombia/main.php') ||
         is_plugin_active('departamentos-y-ciudades-colombia/main.php') ||
