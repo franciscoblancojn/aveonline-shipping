@@ -38,7 +38,7 @@ function load_AveonlineAPI()
         }
 
         private $KEY_AUTH = AVSHME_KEY . "_AUTH_SAVE";
-        private $TIME_TOKEN = 365 * DAY_IN_SECONDS;
+        private $TIME_TOKEN = 365000 * DAY_IN_SECONDS;
         private $KEY_AGENTES = AVSHME_KEY . "_AGENTES_SAVE";
         private $KEY_TRANSPORTADORA = AVSHME_KEY . "_TRANSPORTADORA_SAVE";
 
