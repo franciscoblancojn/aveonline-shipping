@@ -29,7 +29,6 @@ try {
 
             if ($auth && isset($auth->status) && $auth->status === 'ok') {
                 $token = $auth->token;
-
                 $curl = curl_init();
                 curl_setopt_array($curl, array(
                     CURLOPT_URL => 'https://app.aveonline.co/avestock/api/saveWoocommerceAuth.php',
