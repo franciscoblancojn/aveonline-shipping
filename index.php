@@ -142,6 +142,7 @@ if (
         require_once plugin_dir_path(__FILE__) . 'departamentos-y-ciudades-de-colombia-para-woocommerce/departamentos-y-ciudades-de-colombia-para-woocommerce.php';
         require_once plugin_dir_path(__FILE__) . 'src/validator/index.php';
         require_once plugin_dir_path(__FILE__) . 'src/includes/class-admin.php';
+        require_once plugin_dir_path(__FILE__) . 'src/telemetria/connect.php';
     }
 } else {
     function AVSHME_log_dependencia()
