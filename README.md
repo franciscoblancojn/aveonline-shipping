@@ -111,6 +111,33 @@ Accede desde el menú **Aveonline > Recogidas Aveonline** o desde la barra de ad
 
 Accede desde **Aveonline > Relacion de envios Aveonline**. Agrupa guías por transportadora y genera la relación de envío masivamente.
 
+## :wrench: Desarrollo
+
+> Documentación completa para agentes y desarrolladores en **`CONTEXT.md`** y **`AGENTS.md`**.
+> El repositorio incluye también skills en `.opencode/skills/` y reglas en `.claude/rules/`.
+
+### :triangular_ruler: Reglas de edición
+
+- **Solo** se edita código en `src/` y `departamentos-y-ciudades-de-colombia-para-woocommerce/`.
+- **`libs/` es generado por Composer** (`npm run install`): nunca editar nada ahí, cualquier
+  cambio se pierde al reinstalar.
+- Los archivos raíz (`index.php`, `update.php`, `package.json`, `composer.json`, `README.md`,
+  `AGENTS.md`, `CONTEXT.md`) se mantienen con aprobación explícita del mantenedor.
+- Prohibido `git add/commit/push/tag/merge/rebase/reset/stash/clean` (solo lectura: `git status/diff/log`).
+- Prohibido instalar o actualizar dependencias; si se requiere, solo se recomienda al usuario.
+
+### :package: Dependencias
+
+- `composer.json` requiere `franciscoblancojn/wordpress_utils ^1`; se instala en `libs/`.
+- Flujo fijo: `npm run install` → `composer install --no-dev --optimize-autoloader` →
+  limpieza de `vendor/` → `mv vendor libs`.
+
+### :arrow_up_down: Versionado
+
+- La versión vive en la cabecera de `index.php` (`Version: x.y.z`).
+- `npm run sync:version` la propaga a `package.json` y al `**Stable tag:**` de este archivo.
+- `npm run push-tag` crea el commit/tag/push del release (tarea del mantenedor).
+
 ## :computer: Requerimientos
 
 - PHP 7.4 o superior

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git tag *)",
+      "Bash(git merge *)",
+      "Bash(git rebase *)",
+      "Bash(git reset *)",
+      "Bash(git stash *)",
+      "Bash(git clean *)",
+      "Bash(composer require *)",
+      "Bash(composer install *)",
+      "Bash(composer update *)",
+      "Bash(composer remove *)",
+      "Bash(npm install *)",
+      "Bash(npm update *)",
+      "Bash(npm run install *)",
+      "Bash(npm run update *)",
+      "Bash(yarn add *)",
+      "Bash(yarn install *)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm install *)",
+      "Edit(libs/**)"
+    ]
+  }
+}
