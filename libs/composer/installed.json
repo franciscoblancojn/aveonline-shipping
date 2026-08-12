@@ -2,20 +2,20 @@
     "packages": [
         {
             "name": "franciscoblancojn/wordpress_utils",
-            "version": "v1.0.5",
-            "version_normalized": "1.0.5.0",
+            "version": "v1.3.0",
+            "version_normalized": "1.3.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/franciscoblancojn/wordpress_utils.git",
-                "reference": "1a709415b6d74e0586cff44ec16691ed0e6d9b77"
+                "reference": "5308c209bfbaeddd0291eba686bcac9f9eb2ab8b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/franciscoblancojn/wordpress_utils/zipball/1a709415b6d74e0586cff44ec16691ed0e6d9b77",
-                "reference": "1a709415b6d74e0586cff44ec16691ed0e6d9b77",
+                "url": "https://api.github.com/repos/franciscoblancojn/wordpress_utils/zipball/5308c209bfbaeddd0291eba686bcac9f9eb2ab8b",
+                "reference": "5308c209bfbaeddd0291eba686bcac9f9eb2ab8b",
                 "shasum": ""
             },
-            "time": "2026-03-21T03:53:42+00:00",
+            "time": "2026-06-07T20:15:26+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -30,7 +30,7 @@
             "description": "Libreria que ofrece multiples funcionalidades",
             "support": {
                 "issues": "https://github.com/franciscoblancojn/wordpress_utils/issues",
-                "source": "https://github.com/franciscoblancojn/wordpress_utils/tree/v1.0.5"
+                "source": "https://github.com/franciscoblancojn/wordpress_utils/tree/v1.3.0"
             },
             "install-path": "../franciscoblancojn/wordpress_utils"
         }

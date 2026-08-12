@@ -31,8 +31,9 @@ define("AVSHME_URL", plugin_dir_url(__FILE__));
 define("AVSHME_TIME_MIN_COTIZAR", 5); //en segundos
 define("AVSHME_TIME_MAX_COTIZAR", 30); //en segundos
 
-require_once AVSHME_DIR . 'update.php';
-github_updater_plugin_wordpress_v1([
+use franciscoblancojn\wordpress_utils\FWUUpdate;
+
+FWUUpdate::init([
     'basename' => AVSHME_BASENAME,
     'dir' => AVSHME_DIR,
     'file' => "index.php",
@@ -81,7 +82,6 @@ github_updater_plugin_wordpress_v1([
         "9"
     ]
 ]);
-
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
 FWUSystemLog::init(AVSHME_KEY);

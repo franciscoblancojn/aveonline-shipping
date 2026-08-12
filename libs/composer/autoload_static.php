@@ -22,7 +22,15 @@ class ComposerStaticInitAVSHME
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'franciscoblancojn\\wordpress_utils\\FWUCollapse' => __DIR__ . '/..' . '/franciscoblancojn/wordpress_utils/src/FWUCollapse.php',
+        'franciscoblancojn\\wordpress_utils\\FWUComponent' => __DIR__ . '/..' . '/franciscoblancojn/wordpress_utils/src/FWUComponent.php',
+        'franciscoblancojn\\wordpress_utils\\FWUExportImport' => __DIR__ . '/..' . '/franciscoblancojn/wordpress_utils/src/FWUExportImport.php',
+        'franciscoblancojn\\wordpress_utils\\FWUModal' => __DIR__ . '/..' . '/franciscoblancojn/wordpress_utils/src/FWUModal.php',
+        'franciscoblancojn\\wordpress_utils\\FWUPage' => __DIR__ . '/..' . '/franciscoblancojn/wordpress_utils/src/FWUPage.php',
+        'franciscoblancojn\\wordpress_utils\\FWURespond' => __DIR__ . '/..' . '/franciscoblancojn/wordpress_utils/src/FWURespond.php',
         'franciscoblancojn\\wordpress_utils\\FWUSystemLog' => __DIR__ . '/..' . '/franciscoblancojn/wordpress_utils/src/FWUSystemLog.php',
+        'franciscoblancojn\\wordpress_utils\\FWUTooltip' => __DIR__ . '/..' . '/franciscoblancojn/wordpress_utils/src/FWUTooltip.php',
+        'franciscoblancojn\\wordpress_utils\\FWUUpdate' => __DIR__ . '/..' . '/franciscoblancojn/wordpress_utils/src/FWUUpdate.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
