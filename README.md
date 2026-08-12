@@ -8,7 +8,7 @@
 
 **Tested up to:** 6.7
 
-**Stable tag:** 4.3.0
+**Version:** 4.3.0
 
 **License:** GPLv2 or later
 
@@ -135,7 +135,7 @@ Accede desde **Aveonline > Relacion de envios Aveonline**. Agrupa guías por tra
 ### :arrow_up_down: Versionado
 
 - La versión vive en la cabecera de `index.php` (`Version: x.y.z`).
-- `npm run sync:version` la propaga a `package.json` y al `**Stable tag:**` de este archivo.
+- `npm run sync:version` la propaga a `package.json` y al `**Version:**` de este archivo.
 - `npm run push-tag` crea el commit/tag/push del release (tarea del mantenedor).
 
 ## :computer: Requerimientos
