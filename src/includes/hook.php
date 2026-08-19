@@ -63,10 +63,19 @@ function AVSHME_add_JS_CSS_footer()
                 }
             }
 
+            function getCedulaInput() {
+                var els = document.querySelectorAll('#cedula');
+                if (!els.length) return null;
+                for (var i = 0; i < els.length; i++) {
+                    if (els[i].value.trim() !== '') return els[i];
+                }
+                return els[0];
+            }
+
             jQuery(function($) {
                 // Cedula client-side validation for classic checkout
                 $('form.checkout').on('checkout_place_order', function() {
-                    var cedulaInput = document.getElementById('cedula');
+                    var cedulaInput = getCedulaInput();
                     if (!cedulaInput) return true;
                     var val = cedulaInput.value.trim();
                     var error = null;
