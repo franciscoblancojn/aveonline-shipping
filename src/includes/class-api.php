@@ -690,7 +690,11 @@ function load_AveonlineAPI()
                 "dsbarrioo"         => "",
 
                 "destino"           => $data['destinos'],
-                "dsdir"             => $order->get_shipping_address_1() . " " . $order->get_shipping_address_2(),
+                "dsdir"             => trim(
+                    !empty($order->get_shipping_address_1())
+                        ? $order->get_shipping_address_1() . " " . $order->get_shipping_address_2()
+                        : $order->get_billing_address_1() . " " . $order->get_billing_address_2()
+                ),
                 "dsbarrio"          => "",
 
                 "dsnitre"           => $this->settings['dsnitre'],

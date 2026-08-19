@@ -102,7 +102,7 @@ function AVSHME_register_additional_checkout_field()
         woocommerce_register_additional_checkout_field(array(
             'id' => 'aveonline/cedula',
             'label' => __('Cédula'),
-            'location' => 'address',
+            'location' => 'order',
             'type' => 'text',
             'required' => true,
         ));
@@ -134,9 +134,8 @@ function AVSHME_cedula_store_api_validate($order, $request)
     if (!isActiveAveonlineShipping()) return;
     if ($request->get_method() !== 'POST') return;
 
-    $billing = $request['billing_address'] ?? [];
-    $shipping = $request['shipping_address'] ?? [];
-    $cedula = $billing['aveonline/cedula'] ?? $shipping['aveonline/cedula'] ?? '';
+    $additional_fields = $request['additional_fields'] ?? [];
+    $cedula = $additional_fields['aveonline/cedula'] ?? '';
 
     $error = AVSHME_validate_cedula_value($cedula);
     if ($error) {
