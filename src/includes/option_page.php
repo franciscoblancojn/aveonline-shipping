@@ -73,5 +73,5 @@ function Aveonline_settings_page()
 
 function AVSHME_soporte_page()
 {
-    require_once AVSHME_DIR . 'src/pages/suport.php';
+    require_once AVSHME_DIR . 'src/pages/support.php';
 }

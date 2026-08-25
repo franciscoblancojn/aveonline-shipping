@@ -51,9 +51,11 @@ src/
   includes/class-relacion-envio.php        Página admin de relación de envíos
   includes/class-edit-order.php            Muestra estado de guía en pedido
   includes/class-edit-product.php          Campo "valor declarado" en productos y variaciones
+  includes/products/_index.php             Cargador de los campos de producto (products/)
   includes/products/group-exclude.php      Campo "IDs de productos a excluir" (productos agrupados)
   includes/columns.php                     Columnas personalizadas en lista de pedidos
-  includes/option_page.php                 Menú y página de ajustes del plugin
+  includes/option_page.php                 Menú admin "Aveonline" (ajustes, submenús Recogida/Relación de Envío/Soporte,
+                                           enlace "Soporte" en la lista de plugins)
   includes/dasboard.php                    Estilos del admin
   includes/cache.php                       AVSHME_getCache / AVSHME_setCache (transients)
   includes/crud_options.php                AVSHME_get_options / AVSHME_update_options
@@ -62,6 +64,8 @@ src/
   includes/action-update-guia.php          Endpoint de actualización de guía vía webhook
   validator/index.php                      Clase AVSHME_Validator (validación fluida)
   telemetria/connect.php                   Envía datos de conexión a Aveonline (1 sola vez)
+  telemetria/index.php                     Inicialización de telemetría
+  pages/support.php                        Página admin de Soporte (errores comunes con FWUCollapse)
   templates/admin/settings.php             Template de la página de ajustes
   css/  js/  img/                          Assets (estilos, JS de checkout, imágenes)
   js/cedula-field.js                       Validación JS del campo cédula (clásico)
@@ -112,12 +116,16 @@ departamentos-y-ciudades-de-colombia-para-woocommerce/
 - **`Filters_By_Cities_Method`** (`departamentos/.../includes/filter-by-cities.php`) — método de envío
   con reglas por ciudad.
 - **`FWUSystemLog`** (en `libs/`) — log del sistema, se usa vía `AVSHME_addLogAveonline()`.
+- **Componentes FWU** (en `libs/`) — utilidades de UI/admin listas para usar en páginas del plugin:
+  `FWUCollapse` (acordeones, usado en `pages/support.php`), `FWUModal`, `FWUTooltip`, `FWUPage`,
+  `FWURespond`, `FWUExportImport`, `FWUUpdate`. Se importan con `use franciscoblancojn\wordpress_utils\...`.
 
 ## Convenciones de código
 
 - **Prefijos**: funciones, clases, constantes y variables globales con prefijo `AVSHME_`
   (ej. `AVSHME_get_cache`, `AVSHME_Validator`). El código de `src/` no usa `namespace`
-  (solo `index.php` importa `FWUSystemLog` con `use`).
+  (solo se importan clases de `libs/` con `use`, ej. `FWUSystemLog` en `index.php`,
+  `FWUCollapse` en `pages/support.php`).
 - **PHP 7.4**: Composer fija `platform.php = 7.4.33`. No usar sintaxis solo disponible en PHP 8+
   (props tipadas `?type` sí están permitidas; `?string $name` en el validator).
 - **Sin comentarios innecesarios**: el código existente tiene pocos comentarios; mantener el estilo.
