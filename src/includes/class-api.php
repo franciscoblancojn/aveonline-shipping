@@ -39,6 +39,8 @@ function load_AveonlineAPI()
 
         private $KEY_AUTH = AVSHME_KEY . "_AUTH_SAVE";
         private $TIME_TOKEN = 365000 * DAY_IN_SECONDS;
+        private $TIME_MIN_RENEW_AUTH = 10 * MINUTE_IN_SECONDS;
+        private $tokenRejected = false;
         private $KEY_AGENTES = AVSHME_KEY . "_AGENTES_SAVE";
         private $KEY_TRANSPORTADORA = AVSHME_KEY . "_TRANSPORTADORA_SAVE";
 
@@ -96,10 +98,46 @@ function load_AveonlineAPI()
                 if (!$auth || !isset($auth->status) || $auth->status !== "ok") {
                     return null;
                 }
+                $auth->saved_at = time();
                 update_option($this->KEY_AUTH, json_encode($auth));
             } catch (\Throwable $th) {
                 return null;
             }
+        }
+        private function isTokenRejected($response)
+        {
+            if (!$response || !isset($response->status) || $response->status !== "error") {
+                return false;
+            }
+            $message = strtolower($response->message ?? "");
+            return strpos($message, "credenciales incorrectas") !== false
+                || strpos($message, "problemas al autenticarse") !== false;
+        }
+        private function renewToken()
+        {
+            $auth = json_decode(get_option($this->KEY_AUTH) ?: "null");
+            if ($auth && isset($auth->saved_at) && time() - $auth->saved_at < $this->TIME_MIN_RENEW_AUTH) {
+                return null;
+            }
+            AVSHME_addLogAveonline(array(
+                "type" => "renew token",
+                "saved_at" => $auth->saved_at ?? null,
+            ));
+            $this->clearAuth();
+            return $this->get_token();
+        }
+        private function requestWithToken($body, $url)
+        {
+            $body["token"] = $this->get_token();
+            $response = $this->request(json_encode($body), $url);
+            if ($this->isTokenRejected($response)) {
+                $token = $this->renewToken();
+                if ($token) {
+                    $body["token"] = $token;
+                    $response = $this->request(json_encode($body), $url);
+                }
+            }
+            return $response;
         }
         public function clearAgentes()
         {
@@ -410,12 +448,12 @@ function load_AveonlineAPI()
                 return $agentes;
             }
 
-            $json_body = json_encode(array(
+            $json_body = array(
                 "tipo" => "listarAgentesPorEmpresaAuth",
-                "token" => $this->get_token(),
+                "token" => "",
                 "idempresa" => $this->settings['select_cuenta']
-            ));
-            $agentes = $this->request($json_body, $this->API_URL_AGENTE);
+            );
+            $agentes = $this->requestWithToken($json_body, $this->API_URL_AGENTE);
 
             $this->setAgentes($agentes);
 
@@ -428,12 +466,12 @@ function load_AveonlineAPI()
                 return $transportadora;
             }
 
-            $json_body = json_encode(array(
+            $json_body = array(
                 "tipo" => "listarTransportadorasPorEmpresa",
-                "token" => $this->get_token(),
+                "token" => "",
                 "id" => $this->settings['select_cuenta']
-            ));
-            $transportadora = $this->request($json_body, $this->API_URL_TRANSPORTADORA);
+            );
+            $transportadora = $this->requestWithToken($json_body, $this->API_URL_TRANSPORTADORA);
 
             $this->setTransportadora($transportadora);
 
@@ -443,6 +481,7 @@ function load_AveonlineAPI()
         {
             $multi = curl_multi_init();
             $channels = [];
+            $this->tokenRejected = false;
 
             $maxTime  = $this->settings['maxTimeCotizar'] ?? AVSHME_TIME_MAX_COTIZAR;
             $maxTime = max((int)$maxTime, AVSHME_TIME_MIN_COTIZAR);
@@ -506,6 +545,8 @@ function load_AveonlineAPI()
                     if (isset($data->cotizaciones)) {
                         $cotizaciones = array_merge($cotizaciones, $data->cotizaciones);
                     }
+                } elseif ($this->isTokenRejected($data)) {
+                    $this->tokenRejected = true;
                 }
 
                 curl_multi_remove_handle($multi, $ch);
@@ -580,6 +621,13 @@ function load_AveonlineAPI()
 
             //INFO: mas optimo que cotizar todas las transportadoras
             $result =  $this->cotizarParalelo($ids_transportadora, $json_body);
+            if ($this->tokenRejected && count($result->cotizaciones) === 0) {
+                $token = $this->renewToken();
+                if ($token) {
+                    $json_body["token"] = $token;
+                    $result =  $this->cotizarParalelo($ids_transportadora, $json_body);
+                }
+            }
             set_transient($key_cache, $result, 60);
 
             return $result;
@@ -749,8 +797,8 @@ function load_AveonlineAPI()
             ));
 
 
+            $r = $this->requestWithToken($json_body, $this->API_URL_QUOTE);
             $json_body = json_encode($json_body);
-            $r = $this->request($json_body, $this->API_URL_QUOTE);
             $json_S = '{
                 "shop" : "' . get_bloginfo('name') . '",
                 "send" : ' . $json_body . ',
@@ -801,15 +849,15 @@ function load_AveonlineAPI()
         {
             $json_body = array(
                 "tipo"              => "generarRecogida2",
-                "token"             => $this->get_token(),
+                "token"             => "",
                 "idempresa"         => $this->settings['select_cuenta'],
                 "idagente"          => explode('_', $this->settings['select_agentes'])[0],
                 "dscom"             => $data['dscom'],
                 "guias"             => $data['guias']
             );
-            $json_body = json_encode($json_body);
 
-            $r = $this->request($json_body, $this->API_URL_QUOTE);
+            $r = $this->requestWithToken($json_body, $this->API_URL_QUOTE);
+            $json_body = json_encode($json_body);
 
             $json_S = '{
                 "shop" : "' . get_bloginfo('name') . '",
@@ -836,16 +884,15 @@ function load_AveonlineAPI()
         }
         public function relacionEnvios($data)
         {
-            $json_body = '
-            {
-                "tipo" : "relacionEnvios",
-                "token":"' .                 $this->get_token() . '",
-                "idempresa":"' .             $this->settings['select_cuenta'] . '",
-                "transportadora":"' .        $data["transportadora"] . '",
-                "guias" : "' .               $data['guias'] . '"
-            }
-            ';
-            $r = $this->request($json_body, $this->API_URL_QUOTE);
+            $json_body = array(
+                "tipo"              => "relacionEnvios",
+                "token"             => "",
+                "idempresa"         => (string) $this->settings['select_cuenta'],
+                "transportadora"    => (string) $data["transportadora"],
+                "guias"             => (string) $data['guias'],
+            );
+            $r = $this->requestWithToken($json_body, $this->API_URL_QUOTE);
+            $json_body = json_encode($json_body);
             $json_S = '{
                 "shop" : "' . get_bloginfo('name') . '",
                 "send" : ' . $json_body . ',
