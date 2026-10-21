@@ -607,6 +607,7 @@ function aveonline_shipping_method()
                         $request['envioGratis'] = $envioGratis ? 1 : 0;
 
                         $t = $this->settings['fijarFlete'] == 'yes' ? floatval($this->settings['fleteFijo']) : $value->total;
+                        $request['valorEnvioCliente'] = $envioGratis ? 0 : $t;
                         $shipping_rate = array(
                             'id'      => $value->codTransportadora . $idContraentrega,
                             'label'   => $titleContraentrega . $value->nombreTransportadora,

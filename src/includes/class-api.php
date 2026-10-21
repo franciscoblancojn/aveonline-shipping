@@ -790,6 +790,7 @@ function load_AveonlineAPI()
                 "cartaporte"        => "",
                 "valorMinimo"       => ($this->settings['valorMinimo'] == "yes") ? 1 : 0,
                 "envioGratis"       => $data['envioGratis'],
+                "valorEnvioCliente" => $data['valorEnvioCliente'] ?? null,
             );
             AVSHME_addLogAveonline(array(
                 "type" => 'AVSHME_generate_guia body',
