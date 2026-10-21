@@ -727,6 +727,8 @@ function load_AveonlineAPI()
             }
             $json_body = array(
                 "tipo"              => "generarGuia2",
+                "valorEnvioCliente" => $data['valorEnvioCliente'] ?? null,
+                "fleteFijo"         => $data['fleteFijo'] ?? null,
                 "token"             => $this->get_token(),
                 "idempresa"         => $this->settings['select_cuenta'],
                 "codigo"            => "",
@@ -790,7 +792,6 @@ function load_AveonlineAPI()
                 "cartaporte"        => "",
                 "valorMinimo"       => ($this->settings['valorMinimo'] == "yes") ? 1 : 0,
                 "envioGratis"       => $data['envioGratis'],
-                "valorEnvioCliente" => $data['valorEnvioCliente'] ?? null,
             );
             AVSHME_addLogAveonline(array(
                 "type" => 'AVSHME_generate_guia body',
