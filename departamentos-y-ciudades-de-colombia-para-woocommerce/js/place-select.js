@@ -135,6 +135,12 @@
     calc_observer.observe( document.querySelector( '.cart-collaterals' ), { childList: true });
   }
 
+  $( document.body ).on( 'updated_cart_totals updated_wc_div', function() {
+    if ( $( '#calc_shipping_state' ).length ) {
+      $( '#calc_shipping_state' ).change();
+    }
+  });
+
   function cityToInput( $citybox ) {
     if ( $citybox.is('input') ) {
       $citybox.prop( 'disabled', false );

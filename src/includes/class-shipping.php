@@ -631,7 +631,8 @@ function aveonline_shipping_method()
         {
             try {
                 $cotizadorCarrito = isset($this->settings['cotizadorCarrito']) && $this->settings['cotizadorCarrito'] === 'yes';
-                if (!is_checkout() && !(is_cart() && $cotizadorCarrito) && !defined('REST_REQUEST')) {
+                $isCart = is_cart() || !empty($_POST['calc_shipping']);
+                if (!is_checkout() && !($isCart && $cotizadorCarrito) && !defined('REST_REQUEST')) {
                     return;
                 }
                 if (
@@ -775,3 +776,17 @@ function AVSHME_add_aveonline_shipping_method($methods)
     return $methods;
 }
 add_filter('woocommerce_shipping_methods', 'AVSHME_add_aveonline_shipping_method');
+
+function AVSHME_fix_cart_url($url)
+{
+    global $post;
+    if (is_admin() || !did_action('wp')) {
+        return $url;
+    }
+    $cart_id = wc_get_page_id('cart');
+    if ($cart_id > 0 && $post && intval($post->ID) !== $cart_id && is_page($cart_id)) {
+        return get_permalink($cart_id);
+    }
+    return $url;
+}
+add_filter('woocommerce_get_cart_url', 'AVSHME_fix_cart_url');
