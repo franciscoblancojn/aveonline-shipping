@@ -790,3 +790,17 @@ function AVSHME_fix_cart_url($url)
     return $url;
 }
 add_filter('woocommerce_get_cart_url', 'AVSHME_fix_cart_url');
+
+function AVSHME_shipping_package_context($packages)
+{
+    $context = array(
+        'checkout' => is_checkout() ? 1 : 0,
+        'cart'     => (is_cart() || !empty($_POST['calc_shipping'])) ? 1 : 0,
+        'rest'     => defined('REST_REQUEST') ? 1 : 0,
+    );
+    foreach ($packages as $key => $package) {
+        $packages[$key]['avshme_context'] = implode('', $context);
+    }
+    return $packages;
+}
+add_filter('woocommerce_cart_shipping_packages', 'AVSHME_shipping_package_context');
