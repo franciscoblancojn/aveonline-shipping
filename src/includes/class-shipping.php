@@ -798,8 +798,15 @@ function AVSHME_shipping_package_context($packages)
         'cart'     => (is_cart() || !empty($_POST['calc_shipping'])) ? 1 : 0,
         'rest'     => defined('REST_REQUEST') ? 1 : 0,
     );
+    $clear = !empty($_POST['calc_shipping']) && WC()->session && !did_action('avshme_cart_rates_cleared');
     foreach ($packages as $key => $package) {
         $packages[$key]['avshme_context'] = implode('', $context);
+        if ($clear) {
+            WC()->session->set('shipping_for_package_' . $key, null);
+        }
+    }
+    if ($clear) {
+        do_action('avshme_cart_rates_cleared');
     }
     return $packages;
 }
