@@ -804,3 +804,32 @@ function AVSHME_shipping_package_context($packages)
     return $packages;
 }
 add_filter('woocommerce_cart_shipping_packages', 'AVSHME_shipping_package_context');
+
+function AVSHME_log_cart_calculator($packages)
+{
+    if (empty($_POST['calc_shipping'])) {
+        return $packages;
+    }
+    $settings = get_option('woocommerce_wc_aveonline_shipping_settings', array());
+    foreach ($packages as $key => $package) {
+        $zone = WC_Shipping_Zones::get_zone_matching_package($package);
+        $methods = array();
+        foreach ($zone->get_shipping_methods(true) as $method) {
+            $methods[] = $method->id;
+        }
+        $cached = WC()->session ? WC()->session->get('shipping_for_package_' . $key) : null;
+        AVSHME_addLogAveonline(array(
+            "type"              => "CART_CALCULATOR",
+            "destination"       => $package['destination'],
+            "is_cart"           => is_cart(),
+            "is_checkout"       => is_checkout(),
+            "cotizadorCarrito"  => isset($settings['cotizadorCarrito']) ? $settings['cotizadorCarrito'] : null,
+            "zone"              => $zone->get_zone_name(),
+            "zone_methods"      => $methods,
+            "cached_rates"      => $cached ? count($cached['rates']) : null,
+            "debug_mode"        => get_option('woocommerce_shipping_debug_mode'),
+        ));
+    }
+    return $packages;
+}
+add_filter('woocommerce_cart_shipping_packages', 'AVSHME_log_cart_calculator', 99);
