@@ -7,6 +7,7 @@ require_once plugin_dir_path( __FILE__ ) . 'cache.php';
 require_once plugin_dir_path( __FILE__ ) . 'validate-shippind-active.php';
 require_once plugin_dir_path( __FILE__ ) . 'hook.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-api.php';
+require_once plugin_dir_path( __FILE__ ) . 'multiagente.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-change-order.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-contraentrega.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-edit-product.php';

@@ -217,6 +217,20 @@ function aveonline_shipping_method()
                     'title' => __('Agentes'),
                 ),
                 'select_agentes' => $this->select_agentes,
+                'multiagente' => array(
+                    'title' => __('Activar selección agéntica múltiple'),
+                    'label' => __('Permite generar guías desde distintas bodegas (agentes) dependiendo del producto comprado'),
+                    'type' => 'checkbox',
+                    'default' => 'no',
+                    'description' => '<div class="avshme-multiagente-desc">' . AVSHME_multiagente_help_html() . '<p>El agente seleccionado arriba es el <strong>agente por defecto</strong>.</p></div>',
+                ),
+                'multiagente_btn' => array(
+                    'title' => __('Agentes por producto'),
+                    'type' => 'link_button',
+                    'label' => __('Configurar multiagentes'),
+                    'url' => admin_url('admin.php?page=' . AVSHME_MULTIAGENTE_PAGE),
+                    'description' => __('Abre en otra pestaña la lista de productos para asignar a cada uno su Agente Personalizado.'),
+                ),
                 'tag_valorMinimo' => array(
                     'id'    => 'tag',
                     'type'  => 'tag',
@@ -332,6 +346,44 @@ function aveonline_shipping_method()
                 </td>
                 <td></td>
             </tr>
+        <?php
+            return ob_get_clean();
+        }
+        public function generate_link_button_html($key, $data)
+        {
+            $data = wp_parse_args($data, array(
+                'title'       => '',
+                'label'       => '',
+                'url'         => '',
+                'description' => '',
+            ));
+            ob_start();
+        ?>
+            <tr valign="top" id="avshme-multiagente-btn-row">
+                <th scope="row" class="titledesc"><?php echo wp_kses_post($data['title']); ?></th>
+                <td class="forminp">
+                    <a class="button button-secondary" href="<?php echo esc_url($data['url']); ?>" target="_blank" rel="noopener"><?php echo esc_html($data['label']); ?></a>
+                    <?php echo $this->get_description_html($data); ?>
+                </td>
+            </tr>
+            <script>
+                (function() {
+                    var checkbox = document.getElementById('<?php echo esc_js($this->get_field_key('multiagente')); ?>');
+                    var row = document.getElementById('avshme-multiagente-btn-row');
+                    if (!checkbox || !row) {
+                        return;
+                    }
+                    var toggle = function() {
+                        var display = checkbox.checked ? '' : 'none';
+                        row.style.display = display;
+                        document.querySelectorAll('.avshme-multiagente-desc').forEach(function(desc) {
+                            desc.style.display = display;
+                        });
+                    };
+                    checkbox.addEventListener('change', toggle);
+                    toggle();
+                })();
+            </script>
         <?php
             return ob_get_clean();
         }
@@ -700,8 +752,10 @@ function aveonline_shipping_method()
                     "is_contraentrega" => $contraentregaPayment,
                 ));
                 $productos = [];
+                $product_ids = [];
                 //recorre products
                 foreach ($package["contents"] as $clave => $valor) {
+                    $product_ids[] = $valor["product_id"];
                     if ($valor['variation_id'] != 0) {
                         $valor["product_id"] = $valor['variation_id'];
                     }
@@ -745,7 +799,7 @@ function aveonline_shipping_method()
                     "idasumecosto"          => 1,
                     "productos"             => $productos,
                     "envioGratis"           => $envioGratis,
-
+                    "agente"                => AVSHME_multiagente_resolve($product_ids, $this->settings),
                 );
                 AVSHME_addLogAveonline(array(
                     "type" => "resquest pre cotizar",

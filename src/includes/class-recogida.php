@@ -356,6 +356,7 @@ if (isset($_POST) && isset($_POST['generar_recogida'])) {
     $data = array(
         "guias"             => $guias,
         'dscom'             => $_POST['notas'],
+        'agente'            => $order ? AVSHME_multiagente_get_order_agente($order, $settings) : '',
     );
     
     $recogida = $api->generarRecogida($data);
@@ -392,11 +393,23 @@ if (isset($_POST) && isset($_POST['generar_recogida_multiple'])) {
 
     $api = new AveonlineAPI($settings);
 
-    $data = array(
-        "guias"             => $guias,
-        'dscom'             => $_POST['notas'],
-    );
-    $recogida = $api->generarRecogida($data);
+    $guiasAgente = array();
+    for ($i=0; $i < count($guias); $i++) {
+        $order = wc_get_order($order_ids[$i]);
+        $agente = $order ? AVSHME_multiagente_get_order_agente($order, $settings) : '';
+        $guiasAgente[$agente][] = $guias[$i];
+    }
+    $recogida = (object) array("guias" => array());
+    foreach ($guiasAgente as $agente => $guiasGrupo) {
+        $r = $api->generarRecogida(array(
+            "guias"             => $guiasGrupo,
+            'dscom'             => $_POST['notas'],
+            'agente'            => $agente,
+        ));
+        if ($r && isset($r->guias) && is_array($r->guias)) {
+            $recogida->guias = array_merge($recogida->guias, $r->guias);
+        }
+    }
     if (count($recogida->guias) > 0) {
         for ($i=0; $i < count($recogida->guias); $i++) { 
             // $order_id = $recogida->guias[$i]->dsconsec;

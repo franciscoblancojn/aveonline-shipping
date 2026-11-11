@@ -44,6 +44,11 @@ function load_AveonlineAPI()
         private $KEY_AGENTES = AVSHME_KEY . "_AGENTES_SAVE";
         private $KEY_TRANSPORTADORA = AVSHME_KEY . "_TRANSPORTADORA_SAVE";
 
+        private function getAgente($data = array())
+        {
+            $agente = !empty($data['agente']) ? $data['agente'] : $this->settings['select_agentes'];
+            return explode('_', $agente, 2) + array('', '');
+        }
         public function clearAuth()
         {
             delete_option($this->KEY_AUTH);
@@ -580,8 +585,8 @@ function load_AveonlineAPI()
                 "access"                => "",
                 "token"                 => $data["token"],
                 "idempresa"             => $this->settings['select_cuenta'],
-                "idagente"              => explode('_', $this->settings['select_agentes'])[0],
-                "origen"                => explode('_', $this->settings['select_agentes'])[1],
+                "idagente"              => $this->getAgente($data)[0],
+                "origen"                => $this->getAgente($data)[1],
                 "destino"               => $data["destinos"],
                 "idasumecosto"          => $data["idasumecosto"],
                 "contraentrega"         => $data["contraentrega"],
@@ -735,7 +740,7 @@ function load_AveonlineAPI()
                 "dsclavex"          => "",
                 "plugin"            => "wordpress",
 
-                "origen"            => explode('_', $this->settings['select_agentes'])[1],
+                "origen"            => $this->getAgente($data)[1],
                 "dsdirre"           => $this->settings['dsdirre'],
                 "dsbarrioo"         => "",
 
@@ -780,7 +785,7 @@ function load_AveonlineAPI()
                 "contraentrega"     => $data['contraentrega'],
                 "valorrecaudo"      => $data['valorrecaudo'],
 
-                "idagente"          => explode('_', $this->settings['select_agentes'])[0],
+                "idagente"          => $this->getAgente($data)[0],
 
                 "dsreferencia"      => "",
                 "dsordendecompra"   => "",
@@ -853,7 +858,7 @@ function load_AveonlineAPI()
                 "tipo"              => "generarRecogida2",
                 "token"             => "",
                 "idempresa"         => $this->settings['select_cuenta'],
-                "idagente"          => explode('_', $this->settings['select_agentes'])[0],
+                "idagente"          => $this->getAgente($data)[0],
                 "dscom"             => $data['dscom'],
                 "guias"             => $data['guias']
             );

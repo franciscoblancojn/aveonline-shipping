@@ -32,6 +32,7 @@ function AVSHME_generate_guia($order_id)
     if (!isset($e["request"])) {
         return;
     }
+    $e["request"]['agente'] = AVSHME_multiagente_get_order_agente($order, $settings);
     add_post_meta($order_id, 'AVSHME_generate_guia_request', json_encode($e["request"]));
     $r = $api->AVSHME_generate_guia($e["request"], $order);
     AVSHME_addLogAveonline(array(
@@ -68,6 +69,12 @@ function AVSHME_order_pdf($order)
     $guias_rotulos = AVSHME_get_options($order_id, 'guias_rotulos');
     $enable_recogida = AVSHME_get_options($order_id, 'enable_recogida');
     $error_guia = AVSHME_get_options($order_id, 'error_guia');
+    $agente = $order->get_meta(AVSHME_MULTIAGENTE_ORDER_META, true);
+    if ($agente && AVSHME_multiagente_enabled()) {
+    ?>
+        <p><strong>Agente Aveonline:</strong> <?= esc_html(AVSHME_multiagente_label($agente)) ?></p>
+    <?php
+    }
 
     // var_dump(
     //     array([
