@@ -226,6 +226,15 @@ function AVSHME_review_log(WP_REST_Request $request)
 
 function AVSHME_review_redact($value)
 {
+    if (is_string($value)) {
+        if (preg_match('/^eyJ[A-Za-z0-9+\/]+=*$/', $value)) {
+            $decoded = json_decode(base64_decode($value, true), true);
+            if (is_array($decoded)) {
+                return AVSHME_review_redact($decoded);
+            }
+        }
+        return preg_replace('/eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/', '***', $value);
+    }
     if (!is_array($value)) {
         return $value;
     }
