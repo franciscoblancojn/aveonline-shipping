@@ -28,9 +28,10 @@ if (!base || !token) {
 
 const url = new URL(base + '/wp-json/aveonline/v1/review/log');
 if (type) url.searchParams.set('type', type);
+url.searchParams.set('_', Date.now().toString(36));
 
 (async () => {
-    const res = await fetch(url, { headers: { 'X-Avshme-Token': token, Accept: 'application/json' } });
+    const res = await fetch(url, { headers: { 'X-Avshme-Token': token, Accept: 'application/json', 'Cache-Control': 'no-cache' } });
     const text = await res.text();
     let body;
     try {

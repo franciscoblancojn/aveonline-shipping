@@ -173,6 +173,28 @@ function AVSHME_review_menu()
 }
 add_action('admin_menu', 'AVSHME_review_menu', 20);
 
+function AVSHME_review_nocache($response)
+{
+    if (!defined('DONOTCACHEPAGE')) {
+        define('DONOTCACHEPAGE', true);
+    }
+    do_action('litespeed_control_set_nocache', 'aveonline review log');
+    $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private');
+    $response->header('X-LiteSpeed-Cache-Control', 'no-cache');
+    $response->header('CDN-Cache-Control', 'no-store');
+    $response->header('Pragma', 'no-cache');
+    return $response;
+}
+
+function AVSHME_review_rest_nocache($result, $server, $request)
+{
+    if (strpos($request->get_route(), '/aveonline/v1/review') === 0 && $result instanceof WP_HTTP_Response) {
+        AVSHME_review_nocache($result);
+    }
+    return $result;
+}
+add_filter('rest_post_dispatch', 'AVSHME_review_rest_nocache', 10, 3);
+
 function AVSHME_review_permission(WP_REST_Request $request)
 {
     $data = AVSHME_review_get();
@@ -197,10 +219,24 @@ function AVSHME_review_log(WP_REST_Request $request)
         'now'        => time(),
         'expires'    => (int) $data['expires'],
         'types'      => array_map('count', is_array($log) ? $log : array()),
-        'log'        => $log,
+        'log'        => AVSHME_review_redact($log),
     ));
-    $response->header('Cache-Control', 'no-store');
-    return $response;
+    return AVSHME_review_nocache($response);
+}
+
+function AVSHME_review_redact($value)
+{
+    if (!is_array($value)) {
+        return $value;
+    }
+    foreach ($value as $key => $item) {
+        if (is_string($key) && preg_match('/token|password|clave|secret|authorization/i', $key) && !is_array($item)) {
+            $value[$key] = '***';
+        } else {
+            $value[$key] = AVSHME_review_redact($item);
+        }
+    }
+    return $value;
 }
 
 function AVSHME_get_log_aveonline()
