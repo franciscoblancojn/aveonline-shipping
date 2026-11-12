@@ -8,6 +8,7 @@ function AVSHME_ds_pages()
         'soporte',
         'recogida_aveonline',
         'relacion_envio_aveonline',
+        'revision_token',
     ));
 }
 

@@ -128,6 +128,13 @@ function AVSHME_multiagente_resolve($product_ids, $settings)
 {
     $default = isset($settings['select_agentes']) ? $settings['select_agentes'] : '';
     if (!AVSHME_multiagente_enabled($settings)) {
+        AVSHME_addLogAveonline(array(
+            "type"      => "MULTIAGENTE_RESOLVE",
+            "enabled"   => false,
+            "products"  => $product_ids,
+            "default"   => $default,
+            "result"    => $default,
+        ));
         return $default;
     }
     $options = AVSHME_multiagente_options($settings);
@@ -152,6 +159,7 @@ function AVSHME_multiagente_resolve($product_ids, $settings)
     }
     AVSHME_addLogAveonline(array(
         "type"      => "MULTIAGENTE_RESOLVE",
+        "enabled"   => true,
         "products"  => $product_ids,
         "sources"   => $sources,
         "agentes"   => $agentes,
@@ -271,6 +279,9 @@ function AVSHME_multiagente_save($tab, $taxonomy)
         } else {
             delete_term_meta($id, AVSHME_MULTIAGENTE_META);
         }
+    }
+    if (class_exists('WC_Cache_Helper')) {
+        WC_Cache_Helper::get_transient_version('shipping', true);
     }
     return true;
 }

@@ -21,3 +21,4 @@ require_once plugin_dir_path( __FILE__ ) . 'option_page.php';
 require_once plugin_dir_path( __FILE__ ) . 'columns.php';
 require_once plugin_dir_path( __FILE__ ) . 'dasboard.php';
 require_once plugin_dir_path( __FILE__ ) . 'design-system.php';
+require_once plugin_dir_path( __FILE__ ) . 'review-token.php';
