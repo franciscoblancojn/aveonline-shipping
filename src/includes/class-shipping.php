@@ -9,6 +9,12 @@ function aveonline_shipping_method()
         public $classPassword = '';
         public $select_cuenta = '';
         public $select_agentes = '';
+        public function admin_options()
+        {
+            AVSHME_ds_settings(function () {
+                parent::admin_options();
+            });
+        }
         public function __construct($instance_id = 0)
         {
             //parent::__construct( $instance_id );

@@ -7,19 +7,8 @@ function add_AVSHME_relacion_envio_aveonline_option_page($admin_bar)
         array(
             'id' => 'relacion_envio_aveonline',
             'title' => 'Relacion de envio Aveonline',
-            'href' => get_site_url().'/wp-admin/options-general.php?page=relacion_envio_aveonline'
+            'href' => admin_url('admin.php?page=relacion_envio_aveonline')
         )
-    );
-}
-
-function AVSHME_relacion_envio_aveonline_option_page()
-{
-    add_options_page(
-        'Relacion de envio Aveonline',
-        'Relacion de envios Aveonline',
-        'manage_options',
-        'relacion_envio_aveonline',
-        'AVSHME_relacion_envio_aveonline_page'
     );
 }
 
@@ -219,13 +208,13 @@ function AVSHME_relacion_envio_aveonline_page()
             <button onclick="relacion_de_envio()" class="button" style="margin-right:50px">
                 Relacion de Envio
             </button>
-            <a href="<?=get_admin_url()?>options-general.php?page=relacion_envio_aveonline" class="button">
+            <a href="<?= admin_url('admin.php?page=relacion_envio_aveonline') ?>" class="button">
                 All
             </a>
-            <a href="<?=get_admin_url()?>options-general.php?page=relacion_envio_aveonline&&pen=1" class="button">
+            <a href="<?= admin_url('admin.php?page=relacion_envio_aveonline') ?>&&pen=1" class="button">
                 Pendientes
             </a>
-            <a href="<?=get_admin_url()?>options-general.php?page=relacion_envio_aveonline&&com=1" class="button">
+            <a href="<?= admin_url('admin.php?page=relacion_envio_aveonline') ?>&&com=1" class="button">
                 Completadas
             </a>
         </p>
@@ -262,11 +251,11 @@ function AVSHME_relacion_envio_aveonline_page()
             <span class="displaying-num"><?= count($customer_orders_total) ?> items</span>
             <span class="pagination-links">
                 <?php
-                $url_base = get_site_url()."/wp-admin/options-general.php?page=recogida_aveonline&paged=";
+                $url_base = admin_url("admin.php?page=relacion_envio_aveonline&paged=");
                 if(isset($_GET["pen"]) && $_GET["pen"]==1){
-                    $url_base = get_site_url()."/wp-admin/options-general.php?page=recogida_aveonline&pen=1&paged=";
+                    $url_base = admin_url("admin.php?page=relacion_envio_aveonline&pen=1&paged=");
                 }else if(isset($_GET["com"]) && $_GET["com"]==1){
-                    $url_base = get_site_url()."/wp-admin/options-general.php?page=recogida_aveonline&com=1&paged=";
+                    $url_base = admin_url("admin.php?page=relacion_envio_aveonline&com=1&paged=");
                 }
                 $url_void = "javascript:void(0)";
                 $paged_all = ceil(count($customer_orders_total) / $n_page);
@@ -359,4 +348,3 @@ if (isset($_POST) && isset($_POST['relacion_de_envio'])) {
 }
 add_action('admin_bar_menu', 'add_AVSHME_relacion_envio_aveonline_option_page', 100);
 
-add_action('admin_menu', 'AVSHME_relacion_envio_aveonline_option_page');

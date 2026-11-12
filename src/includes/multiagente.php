@@ -233,7 +233,7 @@ function AVSHME_multiagente_label($agente, $options = null)
 
 function AVSHME_multiagente_menu()
 {
-    add_submenu_page('aveonline', 'Configurar Multiagentes', 'Multiagentes', 'administrator', AVSHME_MULTIAGENTE_PAGE, 'AVSHME_multiagente_page');
+    add_submenu_page('aveonline', 'Configurar Multiagentes', 'Multiagentes', 'administrator', AVSHME_MULTIAGENTE_PAGE, AVSHME_ds_page('AVSHME_multiagente_page'));
 }
 add_action('admin_menu', 'AVSHME_multiagente_menu', 20);
 
@@ -354,22 +354,21 @@ function AVSHME_multiagente_page()
         }
     }
 ?>
-    <div class="wrap avshme-multiagente">
+    <div class="avshme-multiagente">
         <h1 class="wp-heading-inline">Configurar Multiagentes</h1>
-        <hr class="wp-header-end">
 
         <?php if ($saved === true) : ?>
-            <div class="notice notice-success is-dismissible">
+            <div class="notice notice-success inline">
                 <p>Agentes guardados.</p>
             </div>
         <?php elseif ($saved === false) : ?>
-            <div class="notice notice-error is-dismissible">
+            <div class="notice notice-error inline">
                 <p>No se pudieron guardar los cambios. Recarga la página e intenta de nuevo.</p>
             </div>
         <?php endif; ?>
 
         <?php if (!$enabled) : ?>
-            <div class="notice notice-warning">
+            <div class="notice notice-warning inline">
                 <p>
                     La <strong>selección agéntica múltiple</strong> está desactivada: los agentes asignados aquí se guardan pero no se usan hasta activarla en
                     <a href="<?= esc_url($settings_url) ?>">la configuración de envío de Aveonline</a>.
@@ -378,7 +377,7 @@ function AVSHME_multiagente_page()
         <?php endif; ?>
 
         <?php if (empty($options)) : ?>
-            <div class="notice notice-error">
+            <div class="notice notice-error inline">
                 <p>
                     No se pudieron cargar los agentes de Aveonline. Revisa el usuario, la contraseña y la cuenta en
                     <a href="<?= esc_url($settings_url) ?>">la configuración de envío</a>.

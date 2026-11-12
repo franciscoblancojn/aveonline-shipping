@@ -12,6 +12,12 @@ function AVSHME_woocommerce_Contraentrega_gateway()
 
 	class WC_Contraentrega extends WC_Payment_Gateway
 	{
+        public function admin_options()
+        {
+            AVSHME_ds_settings(function () {
+                parent::admin_options();
+            });
+        }
         /**
  		 * Class constructor, more about it in Step 3
  		 */

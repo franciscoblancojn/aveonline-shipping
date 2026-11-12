@@ -1,0 +1,818 @@
+/*
+ * Aveonline DS para el admin del plugin.
+ * Tokens y componentes tomados de app-product (app/_styles/globals.css y app/_components/ds).
+ * Solo afecta lo que está dentro de un contenedor .avshme-ds: páginas del plugin (AVSHME_ds_page())
+ * y ajustes de envío / contraentrega (admin_options()). Los avisos de otros plugins quedan fuera
+ * porque WordPress los mueve tras .wp-header-end, que está antes del contenedor.
+ */
+
+@font-face {
+    font-family: 'AVSHME Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('fonts/Inter-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'AVSHME Inter';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('fonts/Inter-Medium.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'AVSHME Inter';
+    font-style: normal;
+    font-weight: 600 700;
+    font-display: swap;
+    src: url('fonts/Inter-Bold.woff2') format('woff2');
+}
+
+/* ---------- Tokens ---------- */
+
+.avshme-ds {
+    --avshme-brand: #5b21e0;
+    --avshme-brand-text: #5b21e0;
+    --avshme-brand-dark: #2a1158;
+    --avshme-brand-light: #ece7fb;
+    --avshme-brand-ave: #db2777;
+    --avshme-text-main: #111827;
+    --avshme-text-sub: #374151;
+    --avshme-text-section: #6b7280;
+    --avshme-border: #e5e7eb;
+    --avshme-hover-bg: #f9fafb;
+    --avshme-surface: #ffffff;
+    --avshme-page: #f3f4f6;
+    --avshme-ok: #16a34a;
+    --avshme-warn: #d97706;
+    --avshme-crit: #dc2626;
+    --avshme-danger-bg: #fee2e2;
+    --avshme-danger-bg-soft: #fef2f2;
+    --avshme-danger-border: #fecaca;
+    --avshme-on-danger: #991b1b;
+    --avshme-ok-bg: #ecfdf5;
+    --avshme-ok-border: #a7f3d0;
+    --avshme-on-ok: #065f46;
+    --avshme-warn-bg: #fffbeb;
+    --avshme-warn-border: #fde68a;
+    --avshme-on-warn: #92400e;
+    --avshme-info-bg: #dbeafe;
+    --avshme-on-info: #1e40af;
+
+    --avshme-font: 'AVSHME Inter', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --avshme-radius-sm: 6px;
+    --avshme-radius-md: 8px;
+    --avshme-radius-lg: 10px;
+    --avshme-radius-xl: 12px;
+    --avshme-radius-2xl: 16px;
+    --avshme-radius-full: 9999px;
+    --avshme-shadow-card: 0 1px 2px rgba(0, 0, 0, .04);
+    --avshme-focus-ring: 0 0 0 3px rgba(91, 33, 224, .10);
+    --avshme-control-h: 38px;
+}
+
+/* ---------- Base ---------- */
+
+#wpbody .avshme-ds {
+    font-family: var(--avshme-font);
+    font-size: 14px;
+    color: var(--avshme-text-sub);
+    -webkit-font-smoothing: antialiased;
+}
+
+#wpbody .avshme-ds :is(h1, h2, h3, h4, p, td, th, label, li, a, span, input, select, textarea, button, summary, legend) {
+    font-family: var(--avshme-font);
+}
+
+#wpbody .avshme-ds h1,
+#wpbody .avshme-ds .title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    color: var(--avshme-text-main);
+    margin: 16px 0 12px;
+    padding: 0;
+}
+
+#wpbody .avshme-ds h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--avshme-text-main);
+}
+
+#wpbody .avshme-ds h3,
+#wpbody .avshme-ds h3.title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: var(--avshme-text-main);
+    margin: 20px 0 10px;
+}
+
+#wpbody .avshme-ds a {
+    color: var(--avshme-brand-text);
+}
+
+#wpbody .avshme-ds a:hover {
+    color: var(--avshme-brand-dark);
+}
+
+#wpbody .avshme-ds a:focus {
+    box-shadow: none;
+    outline: 2px solid var(--avshme-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+#wpbody .avshme-ds .description {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--avshme-text-section);
+    font-style: normal;
+}
+
+#wpbody .avshme-ds code {
+    background: var(--avshme-brand-light);
+    color: var(--avshme-brand-text);
+    border-radius: var(--avshme-radius-sm);
+    padding: 1px 6px;
+    font-size: 12.5px;
+}
+
+#wpbody .avshme-ds hr {
+    border: 0;
+    border-top: 1px solid var(--avshme-border);
+}
+
+/* ---------- Botones (ds/button.tsx) ---------- */
+
+#wpbody .avshme-ds .button,
+#wpbody .avshme-ds input[type=submit],
+#wpbody .avshme-ds input[type=button] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 36px;
+    height: auto;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none;
+    border: 1.5px solid var(--avshme-border);
+    border-radius: var(--avshme-radius-full);
+    background: transparent;
+    color: var(--avshme-text-sub);
+    box-shadow: none;
+    text-shadow: none;
+    cursor: pointer;
+    transition: opacity .15s, border-color .15s, color .15s, background-color .15s;
+    vertical-align: middle;
+}
+
+#wpbody .avshme-ds .button:hover,
+#wpbody .avshme-ds input[type=submit]:hover,
+#wpbody .avshme-ds input[type=button]:hover {
+    background: transparent;
+    border-color: var(--avshme-brand);
+    color: var(--avshme-brand-text);
+}
+
+#wpbody .avshme-ds .button:focus,
+#wpbody .avshme-ds input[type=submit]:focus,
+#wpbody .avshme-ds input[type=button]:focus {
+    box-shadow: var(--avshme-focus-ring);
+    outline: none;
+}
+
+#wpbody .avshme-ds .button-primary,
+#wpbody .avshme-ds .button-primary:hover,
+#wpbody .avshme-ds .button-primary:focus {
+    background: var(--avshme-brand);
+    border-color: transparent;
+    color: #fff;
+}
+
+#wpbody .avshme-ds .button-primary:hover {
+    opacity: .9;
+}
+
+#wpbody .avshme-ds .button-secondary,
+#wpbody .avshme-ds .button-secondary:hover,
+#wpbody .avshme-ds .button-secondary:focus {
+    background: var(--avshme-brand-light);
+    border-color: transparent;
+    color: var(--avshme-brand-text);
+}
+
+#wpbody .avshme-ds .button-secondary:hover {
+    opacity: .9;
+}
+
+#wpbody .avshme-ds .button-link-delete,
+#wpbody .avshme-ds .avshme-btn-danger {
+    background: var(--avshme-danger-bg-soft);
+    border-color: var(--avshme-danger-border);
+    color: var(--avshme-crit);
+}
+
+#wpbody .avshme-ds .button-small {
+    min-height: 32px;
+    padding: 0 12px;
+    font-size: 12px;
+}
+
+#wpbody .avshme-ds .button-hero {
+    min-height: 44px;
+    padding: 0 20px;
+    font-size: 15px;
+}
+
+#wpbody .avshme-ds .button:disabled,
+#wpbody .avshme-ds .button.disabled,
+#wpbody .avshme-ds .button[disabled],
+#wpbody .avshme-ds input[type=submit]:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ---------- Campos (ds/form/field-shell.tsx) ---------- */
+
+#wpbody .avshme-ds :is(input[type=text], input[type=password], input[type=email], input[type=number], input[type=search], input[type=tel], input[type=url], input[type=date], input[type=time], input[type=datetime-local], select, textarea) {
+    box-sizing: border-box;
+    min-height: var(--avshme-control-h);
+    padding: 0 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--avshme-text-main);
+    background-color: var(--avshme-surface);
+    border: 1.5px solid var(--avshme-border);
+    border-radius: var(--avshme-radius-xl);
+    box-shadow: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+#wpbody .avshme-ds textarea {
+    padding: 9px 12px;
+}
+
+#wpbody .avshme-ds select {
+    padding-right: 32px;
+    background-position: right 10px top 55%;
+}
+
+#wpbody .avshme-ds select[multiple] {
+    padding: 6px 8px;
+}
+
+#wpbody .avshme-ds :is(input, select, textarea):focus {
+    border-color: var(--avshme-brand);
+    box-shadow: var(--avshme-focus-ring);
+    outline: none;
+}
+
+#wpbody .avshme-ds :is(input, select, textarea):disabled,
+#wpbody .avshme-ds :is(input, textarea)[readonly] {
+    background-color: var(--avshme-page);
+    color: var(--avshme-text-section);
+    cursor: not-allowed;
+}
+
+#wpbody .avshme-ds :is(input, textarea)::placeholder {
+    color: var(--avshme-text-section);
+}
+
+#wpbody .avshme-ds input.error {
+    border-color: var(--avshme-crit);
+    background: #fff9f9;
+    color: var(--avshme-text-main);
+    font-weight: 400;
+}
+
+#wpbody .avshme-ds tr.error {
+    background: var(--avshme-danger-bg-soft);
+    color: var(--avshme-on-danger);
+    border: 0;
+    font-weight: 500;
+}
+
+/* ---------- Checkbox y radio (ds/form/checkbox.tsx) ---------- */
+
+#wpbody .avshme-ds input[type=checkbox],
+#wpbody .avshme-ds input[type=radio] {
+    width: 18px;
+    height: 18px;
+    min-height: 0;
+    margin: 0 6px 0 0;
+    padding: 0;
+    border: 1.5px solid var(--avshme-border);
+    background: var(--avshme-surface);
+    box-shadow: none;
+    accent-color: var(--avshme-brand);
+    vertical-align: middle;
+}
+
+#wpbody .avshme-ds input[type=checkbox] {
+    border-radius: 5px;
+}
+
+#wpbody .avshme-ds input[type=checkbox]:checked,
+#wpbody .avshme-ds input[type=radio]:checked {
+    background: var(--avshme-brand);
+    border-color: var(--avshme-brand);
+}
+
+#wpbody .avshme-ds input[type=checkbox]:checked::before {
+    content: '';
+    display: block;
+    float: none;
+    width: 5px;
+    height: 9px;
+    margin: 1px auto 0;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+#wpbody .avshme-ds input[type=radio]:checked::before {
+    width: 6px;
+    height: 6px;
+    margin: 4.5px;
+    background: #fff;
+}
+
+/* ---------- Select2 / selectWoo (selects de WooCommerce dentro del contenedor) ---------- */
+
+#wpbody .avshme-ds .select2-container--default .select2-selection--single,
+#wpbody .avshme-ds .select2-container--default .select2-selection--multiple {
+    min-height: var(--avshme-control-h);
+    border: 1.5px solid var(--avshme-border);
+    border-radius: var(--avshme-radius-xl);
+    background: var(--avshme-surface);
+}
+
+#wpbody .avshme-ds .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 35px;
+    padding-left: 12px;
+    color: var(--avshme-text-main);
+}
+
+#wpbody .avshme-ds .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 35px;
+    right: 6px;
+}
+
+#wpbody .avshme-ds .select2-container--default.select2-container--focus .select2-selection--multiple,
+#wpbody .avshme-ds .select2-container--default.select2-container--open .select2-selection--single,
+#wpbody .avshme-ds .select2-container--default.select2-container--open .select2-selection--multiple {
+    border-color: var(--avshme-brand);
+    box-shadow: var(--avshme-focus-ring);
+}
+
+#wpbody .avshme-ds .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background: var(--avshme-brand-light);
+    color: var(--avshme-brand-text);
+    border: 0;
+    border-radius: var(--avshme-radius-full);
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ---------- Tarjetas (ds/card.tsx) ---------- */
+
+#wpbody .avshme-ds .card,
+#wpbody .avshme-ds .avshme-card {
+    max-width: none;
+    padding: 20px;
+    margin-top: 16px;
+    background: var(--avshme-surface);
+    border: 1px solid var(--avshme-border);
+    border-radius: var(--avshme-radius-2xl);
+    box-shadow: var(--avshme-shadow-card);
+    box-sizing: border-box;
+}
+
+#wpbody .avshme-ds .avshme-card-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--avshme-text-main);
+}
+
+#wpbody .avshme-ds .avshme-card-sub {
+    margin: 4px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--avshme-text-section);
+}
+
+#wpbody .avshme-ds .avshme-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+#wpbody .avshme-ds a.avshme-card {
+    display: block;
+    margin: 0;
+    text-decoration: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+#wpbody .avshme-ds a.avshme-card:hover {
+    border-color: var(--avshme-brand);
+    box-shadow: var(--avshme-focus-ring);
+}
+
+#wpbody .avshme-ds a.avshme-card--brand {
+    background: var(--avshme-brand);
+    border-color: var(--avshme-brand);
+}
+
+#wpbody .avshme-ds a.avshme-card--brand .avshme-card-title {
+    color: #fff;
+}
+
+#wpbody .avshme-ds a.avshme-card--brand .avshme-card-sub {
+    color: rgba(255, 255, 255, .8);
+}
+
+#wpbody .avshme-ds a.avshme-card--brand .avshme-card-title::after {
+    content: ' \2197';
+}
+
+/* ---------- Tablas (ds/table/data-table.tsx) ---------- */
+
+#wpbody .avshme-ds table.widefat {
+    border: 1px solid var(--avshme-border);
+    border-radius: var(--avshme-radius-xl);
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    background: var(--avshme-surface);
+    box-shadow: none;
+}
+
+#wpbody .avshme-ds table.widefat :is(thead, tfoot) :is(th, td) {
+    padding: 10px 12px;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: var(--avshme-text-section);
+    background: #fafafa;
+    border-bottom: 1px solid var(--avshme-border);
+}
+
+#wpbody .avshme-ds table.widefat tbody :is(th, td) {
+    padding: 10px 12px;
+    font-size: 13.5px;
+    color: var(--avshme-text-sub);
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f1f3;
+}
+
+#wpbody .avshme-ds table.widefat tbody tr:last-child :is(th, td) {
+    border-bottom: 0;
+}
+
+#wpbody .avshme-ds table.widefat tbody tr {
+    background: var(--avshme-surface);
+}
+
+#wpbody .avshme-ds table.widefat tbody tr:hover {
+    background: var(--avshme-hover-bg);
+}
+
+#wpbody .avshme-ds table.widefat .row-title,
+#wpbody .avshme-ds table.widefat td strong a {
+    font-weight: 600;
+    color: var(--avshme-text-main);
+}
+
+#wpbody .avshme-ds table.widefat .row-actions {
+    font-size: 12px;
+    color: var(--avshme-text-section);
+}
+
+/* Paginación */
+
+#wpbody .avshme-ds .tablenav {
+    height: auto;
+    margin: 12px 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+#wpbody .avshme-ds .tablenav .displaying-num {
+    font-size: 12px;
+    color: var(--avshme-text-section);
+}
+
+#wpbody .avshme-ds .tablenav .tablenav-pages :is(a, .page-numbers),
+#wpbody .avshme-ds .tablenav .pagination-links .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    min-height: 30px;
+    padding: 0 10px;
+    margin: 0 2px;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--avshme-text-sub);
+    background: var(--avshme-surface);
+    border: 1px solid var(--avshme-border);
+    border-radius: var(--avshme-radius-sm);
+}
+
+#wpbody .avshme-ds .tablenav .tablenav-pages a:hover {
+    border-color: var(--avshme-brand);
+    color: var(--avshme-brand-text);
+}
+
+#wpbody .avshme-ds .tablenav .tablenav-pages .page-numbers.current {
+    background: var(--avshme-brand);
+    border-color: var(--avshme-brand);
+    color: #fff;
+}
+
+/* ---------- Formularios de ajustes (form-table) ---------- */
+
+#wpbody .avshme-ds .form-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#wpbody .avshme-ds .form-table th {
+    padding: 16px 16px 16px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--avshme-text-main);
+}
+
+#wpbody .avshme-ds .form-table td {
+    padding: 12px 10px;
+    font-size: 13.5px;
+    color: var(--avshme-text-sub);
+}
+
+#wpbody .avshme-ds .form-table td fieldset label {
+    display: inline-flex;
+    align-items: center;
+    font-size: 14px;
+    color: var(--avshme-text-sub);
+}
+
+/* Encabezados de sección de los ajustes de envío (tag_amazing en class-shipping.php) */
+
+#wpbody .avshme-ds .form-table tr.tag_amazing {
+    background: transparent;
+    box-shadow: none;
+    width: auto;
+}
+
+#wpbody .avshme-ds .form-table tr.tag_amazing td,
+#wpbody .avshme-ds .form-table tr.tag_amazing td * {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--avshme-text-main);
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+#wpbody .avshme-ds .form-table tr.tag_amazing td {
+    padding: 28px 0 10px;
+    border-bottom: 1px solid var(--avshme-border);
+}
+
+/* Cajas por sección (AVSHME_ds_sections en design-system.php) */
+
+#wpbody .avshme-ds .avshme-section {
+    margin: 0 0 16px;
+    padding: 4px 20px 8px;
+    background: var(--avshme-surface);
+    border: 1px solid var(--avshme-border);
+    border-radius: var(--avshme-radius-2xl);
+    box-shadow: var(--avshme-shadow-card);
+}
+
+#wpbody .avshme-ds .avshme-section:first-of-type {
+    margin-top: 16px;
+}
+
+#wpbody .avshme-ds .avshme-section .form-table {
+    margin: 0;
+    width: 100%;
+}
+
+#wpbody .avshme-ds .avshme-section .form-table tr:not(.tag_amazing) + tr:not(.tag_amazing) > :is(th, td) {
+    border-top: 1px solid #f0f1f3;
+}
+
+#wpbody .avshme-ds .avshme-section .form-table tr.tag_amazing td {
+    padding: 16px 0 12px;
+}
+
+#wpbody .avshme-ds .avshme-section .form-table tr.tag_amazing td:first-child {
+    white-space: nowrap;
+}
+
+#wpbody .avshme-ds .form-table tr.tag_amazing td:first-child::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 16px;
+    margin-right: 10px;
+    vertical-align: -2px;
+    border-radius: 2px;
+    background: var(--avshme-brand);
+}
+
+/* ---------- Pestañas (ds/tabs.tsx) ---------- */
+
+#wpbody .avshme-ds .nav-tab-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 0;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--avshme-border);
+}
+
+#wpbody .avshme-ds .nav-tab {
+    margin: 0 20px -1px 0;
+    padding: 11px 0;
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--avshme-text-section);
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+}
+
+#wpbody .avshme-ds .nav-tab:hover {
+    background: none;
+    color: var(--avshme-text-main);
+}
+
+#wpbody .avshme-ds .nav-tab-active,
+#wpbody .avshme-ds .nav-tab-active:hover,
+#wpbody .avshme-ds .nav-tab-active:focus {
+    background: none;
+    color: var(--avshme-brand-text);
+    font-weight: 600;
+    border-bottom-color: var(--avshme-brand);
+}
+
+/* ---------- Avisos propios (deben llevar la clase "inline" para quedarse dentro del contenedor) ---------- */
+
+#wpbody .avshme-ds .notice {
+    margin: 12px 0;
+    padding: 10px 14px;
+    background: var(--avshme-hover-bg);
+    color: var(--avshme-text-sub);
+    border: 1px solid var(--avshme-border);
+    border-radius: var(--avshme-radius-xl);
+    box-shadow: none;
+}
+
+#wpbody .avshme-ds .notice p {
+    margin: 4px 0;
+    font-size: 13px;
+    color: inherit;
+}
+
+#wpbody .avshme-ds .notice-success {
+    background: var(--avshme-ok-bg);
+    border-color: var(--avshme-ok-border);
+    color: var(--avshme-on-ok);
+}
+
+#wpbody .avshme-ds .notice-warning {
+    background: var(--avshme-warn-bg);
+    border-color: var(--avshme-warn-border);
+    color: var(--avshme-on-warn);
+}
+
+#wpbody .avshme-ds .notice-error {
+    background: var(--avshme-danger-bg-soft);
+    border-color: var(--avshme-danger-border);
+    color: var(--avshme-on-danger);
+}
+
+#wpbody .avshme-ds .notice-info {
+    background: var(--avshme-brand-light);
+    border-color: transparent;
+    color: var(--avshme-brand-dark);
+}
+
+#wpbody .avshme-ds .notice a {
+    color: inherit;
+    font-weight: 600;
+}
+
+/* ---------- Badges (ds/badge.tsx) ---------- */
+
+.avshme-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    border-radius: 9999px;
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.avshme-badge--success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.avshme-badge--warning {
+    background: #fef9c3;
+    color: #ca8a04;
+}
+
+.avshme-badge--danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.avshme-badge--info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.avshme-badge--purple {
+    background: #ece7fb;
+    color: #5b21e0;
+}
+
+/* ---------- Colapsables (FWUCollapse en Soporte) ---------- */
+
+#wpbody .avshme-ds .fwue-collapse {
+    margin-bottom: 12px;
+    border: 1px solid var(--avshme-border);
+    border-radius: var(--avshme-radius-xl);
+    background: var(--avshme-surface);
+    box-shadow: var(--avshme-shadow-card);
+}
+
+#wpbody .avshme-ds .fwue-collapse summary {
+    padding: 14px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--avshme-text-main);
+    background: var(--avshme-surface);
+}
+
+#wpbody .avshme-ds .fwue-collapse summary:hover,
+#wpbody .avshme-ds .fwue-collapse[open] summary {
+    background: var(--avshme-hover-bg);
+}
+
+#wpbody .avshme-ds .fwue-collapse[open] summary {
+    color: var(--avshme-brand-text);
+    border-bottom: 1px solid var(--avshme-border);
+}
+
+#wpbody .avshme-ds .fwue-collapse-content {
+    padding: 4px 18px 12px;
+}
+
+/* ---------- Carga (body.load en Recogida y Relación de envío) ---------- */
+
+body.load:has(.avshme-ds)::after {
+    border-color: #ece7fb;
+    border-top-color: #5b21e0;
+}
+
+@media screen and (max-width: 782px) {
+    #wpbody .avshme-ds .button,
+    #wpbody .avshme-ds input[type=submit] {
+        min-height: 40px;
+    }
+
+    #wpbody .avshme-ds .form-table th {
+        padding-bottom: 4px;
+    }
+}

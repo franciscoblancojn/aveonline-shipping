@@ -6,19 +6,8 @@ function AVSHME_add_recogida_aveonline_option_page($admin_bar)
         array(
             'id' => 'recogida_aveonline',
             'title' => 'Recogidas Aveonline',
-            'href' => get_site_url().'/wp-admin/options-general.php?page=recogida_aveonline'
+            'href' => admin_url('admin.php?page=recogida_aveonline')
         )
-    );
-}
-
-function AVSHME_recogida_aveonline_option_page()
-{
-    add_options_page(
-        'Recogida Aveonline',
-        'Recogidas Aveonline',
-        'manage_options',
-        'recogida_aveonline',
-        'AVSHME_recogida_aveonline_page'
     );
 }
 
@@ -225,7 +214,7 @@ function AVSHME_recogida_aveonline_page()
             <span class="displaying-num"><?= count($customer_orders_total) ?> items</span>
             <span class="pagination-links">
                 <?php
-                $url_base = get_site_url()."/wp-admin/options-general.php?page=recogida_aveonline&paged=";
+                $url_base = admin_url("admin.php?page=recogida_aveonline&paged=");
                 $url_void = "javascript:void(0)";
                 $paged_all = ceil(count($customer_orders_total) / $n_page);
 
@@ -427,4 +416,3 @@ if (isset($_POST) && isset($_POST['generar_recogida_multiple'])) {
 }
 add_action('admin_bar_menu', 'AVSHME_add_recogida_aveonline_option_page', 100);
 
-add_action('admin_menu', 'AVSHME_recogida_aveonline_option_page');
