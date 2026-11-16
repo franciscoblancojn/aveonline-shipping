@@ -15,6 +15,12 @@ function AVSHME_generate_guia($order_id)
 {
     global $wpdb, $woocommerce, $current_user;
     $order = wc_get_order($order_id);
+    if (!$order || $order->get_meta('_AVSHME_envio_parent') || !AVSHME_envio_anticipado_can_ship($order)) {
+        return;
+    }
+    if ($order->get_meta('_AVSHME_envio_anticipado') === 'yes' && (!$order->get_meta('_AVSHME_envio_applied') || AVSHME_get_options($order_id, 'guias_rotulos'))) {
+        return;
+    }
     $settings = AVSHME_get_settings_aveonline();
     $api = new AveonlineAPI($settings);
 
@@ -31,6 +37,13 @@ function AVSHME_generate_guia($order_id)
     ));
     if (!isset($e["request"])) {
         return;
+    }
+    if ($order->get_meta('_AVSHME_envio_anticipado') === 'yes') {
+        $e["request"]['contraentrega'] = 1;
+        $e["request"]['envioGratis'] = 1;
+        $e["request"]['valorEnvioCliente'] = 0;
+        $e["request"]['fleteFijo'] = 0;
+        $e["request"]['valorrecaudo'] = max(0, (float) $order->get_total());
     }
     $e["request"]['agente'] = AVSHME_multiagente_get_order_agente($order, $settings);
     add_post_meta($order_id, 'AVSHME_generate_guia_request', json_encode($e["request"]));

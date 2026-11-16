@@ -85,9 +85,26 @@ function AVSHME_woocommerce_Contraentrega_gateway()
         /*
         * We're processing the payments here, everything about it is in Step 5
         */
+        public function payment_fields()
+        {
+            parent::payment_fields();
+            $message = AVSHME_envio_anticipado_message();
+            if ($message) {
+                echo '<p>' . esc_html($message) . '</p>';
+            }
+        }
+
         public function process_payment( $order_id ) {
             global $woocommerce;
-            $order = new WC_Order( $order_id );
+            $order = wc_get_order( $order_id );
+            if (!$order || $order->get_meta('_AVSHME_envio_parent')) {
+                wc_add_notice(__('El envío debe pagarse mediante otro método de pago.', 'wc-aveonline-shipping'), 'error');
+                return array('result' => 'failure');
+            }
+            if (AVSHME_envio_anticipado_required($order)) {
+                return AVSHME_envio_anticipado_process_payment($order);
+            }
+
         
             // Mark as on-hold (we're awaiting the cheque)
             $order->update_status('processing', __( 'Awaiting cheque payment', 'woocommerce' ));
@@ -141,7 +158,7 @@ function AVSHME_register_contraentrega_blocks()
         {
             return [
                 'title'       => $this->get_setting('title', 'Contraentrega Aveonline'),
-                'description' => $this->get_setting('description', ''),
+                'description' => trim($this->get_setting('description', '') . ' ' . AVSHME_envio_anticipado_message()),
                 'supports'    => $this->get_supported_features(),
             ];
         }

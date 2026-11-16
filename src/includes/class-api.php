@@ -781,7 +781,7 @@ function load_AveonlineAPI()
                 "dscontenido"       => $dscontenido,
                 "dscom"             => $order->get_customer_note(),
 
-                "idasumecosto"      => $data['contraentrega'],
+                "idasumecosto"      => $order->get_meta('_AVSHME_envio_anticipado') === 'yes' ? 0 : $data['contraentrega'],
                 "contraentrega"     => $data['contraentrega'],
                 "valorrecaudo"      => $data['valorrecaudo'],
 

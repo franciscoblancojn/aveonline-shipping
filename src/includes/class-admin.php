@@ -10,6 +10,7 @@ require_once plugin_dir_path( __FILE__ ) . 'class-api.php';
 require_once plugin_dir_path( __FILE__ ) . 'multiagente.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-change-order.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-contraentrega.php';
+require_once plugin_dir_path( __FILE__ ) . 'contraentrega-envio-anticipado.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-edit-product.php';
 require_once plugin_dir_path( __FILE__ ) . 'products/_index.php';
 require_once plugin_dir_path( __FILE__ ) . 'class-edit-order.php';

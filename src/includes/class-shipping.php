@@ -288,6 +288,13 @@ function aveonline_shipping_method()
                         'min'   => '0'
                     )
                 ),
+                'contraentregaEnvioAnticipado' => array(
+                    'title' => __('Cobrar envío contraentrega anticipadamente', 'wc-aveonline-shipping'),
+                    'type' => 'checkbox',
+                    'label' => __('Exigir el pago del envío antes de generar la guía contraentrega', 'wc-aveonline-shipping'),
+                    'description' => __('El cliente paga solo el envío en un pedido vinculado mediante otra pasarela. Los productos se pagan al recibir. La guía se genera cuando se confirma el pago del envío.', 'wc-aveonline-shipping'),
+                    'default' => 'no',
+                ),
                 'tag_maxTime' => array(
                     'id'    => 'tag',
                     'type'  => 'tag',
