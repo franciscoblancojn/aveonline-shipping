@@ -224,9 +224,13 @@ function AVSHME_envio_anticipado_admin_badge($column, $order)
     if (!$order instanceof WC_Order) {
         $order = wc_get_order($order);
     }
-    if (AVSHME_envio_anticipado_is_payment($order)) {
-        echo '<mark class="order-status"><span>' . esc_html__('ENVÍO', 'wc-aveonline-shipping') . '</span></mark>';
+    if (!$order instanceof WC_Order) {
+        return;
     }
+    $label = AVSHME_envio_anticipado_is_payment($order)
+        ? __('ENVÍO', 'wc-aveonline-shipping')
+        : __('PEDIDO', 'wc-aveonline-shipping');
+    echo '<mark class="order-status"><span>' . esc_html($label) . '</span></mark>';
 }
 add_action('manage_shop_order_posts_custom_column', 'AVSHME_envio_anticipado_admin_badge', 10, 2);
 add_action('woocommerce_shop_order_list_table_custom_column', 'AVSHME_envio_anticipado_admin_badge', 10, 2);

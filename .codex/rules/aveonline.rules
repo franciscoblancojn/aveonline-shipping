@@ -24,3 +24,7 @@ prefix_rule(
     match = ["npm run install", "npm run push-tag"],
     not_match = ["npm run v"],
 )
+
+prefix_rule(pattern = ["cat", "AGENTS.md"], decision = "allow")
+prefix_rule(pattern = ["rg", "-n", "Tipo|Envío|Envio", "src/includes/columns.php"], decision = "allow")
+prefix_rule(pattern = ["git", "diff", "--", "src/includes/contraentrega-envio-anticipado.php"], decision = "allow")
