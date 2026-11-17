@@ -1,0 +1,28 @@
+default_permissions = "aveonline"
+approval_policy = "on-request"
+approvals_reviewer = "user"
+
+developer_instructions = """
+En Aveonline Shipping, usa AGENTS.md como política del repositorio. Lee CONTEXT.md antes de editar y consulta la skill aplicable en .opencode/skills/ en modo de solo lectura. Para versionado, consulta .claude/rules/versionado.md como referencia del mantenedor.
+
+Para una tarea autorizada, puedes inspeccionar el repositorio y el código local de WooCommerce, editar código en src/ o departamentos-y-ciudades-de-colombia-para-woocommerce/, consultar Git en modo de solo lectura con git status, git diff, git log o git branch --list, y verificar cada PHP modificado con php -l. Procede con estas acciones dentro del sandbox sin pedir confirmación adicional.
+
+Pide autorización antes de salir de ese alcance, por ejemplo para modificar archivos raíz, usar la red o escribir fuera del proyecto. Si el entorno exige una aprobación técnica para una operación permitida, usa la aprobación nativa de Codex y describe el alcance exacto. Mantén las prohibiciones de AGENTS.md sobre libs/, cambios de estado en Git, instalación o actualización de dependencias y el flujo de instalación.
+"""
+
+[permissions.aveonline]
+description = "Edición de código de Aveonline Shipping y del módulo de ciudades."
+
+[permissions.aveonline.filesystem]
+":minimal" = "read"
+":tmpdir" = "write"
+":slash_tmp" = "write"
+"/var/www/wordpress/wp-content/plugins/woocommerce" = "read"
+
+[permissions.aveonline.filesystem.":workspace_roots"]
+"." = "read"
+"src" = "write"
+"departamentos-y-ciudades-de-colombia-para-woocommerce" = "write"
+
+[permissions.aveonline.network]
+enabled = false

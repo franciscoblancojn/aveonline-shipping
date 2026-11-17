@@ -1,0 +1,26 @@
+prefix_rule(
+    pattern = ["git", ["add", "am", "apply", "cherry-pick", "checkout", "clean", "commit", "fetch", "init", "merge", "mv", "pull", "push", "rebase", "reset", "restore", "revert", "rm", "stash", "switch", "tag", "update-index", "update-ref"]],
+    decision = "forbidden",
+    justification = "Usa Git en modo de solo lectura según AGENTS.md.",
+    match = ["git add src", "git reset --hard", "git checkout -- src"],
+    not_match = ["git status --short", "git diff --check", "git branch --list"],
+)
+
+prefix_rule(
+    pattern = ["composer", ["install", "remove", "require", "update"]],
+    decision = "forbidden",
+    match = ["composer install --no-dev"],
+)
+
+prefix_rule(
+    pattern = [["npm", "yarn", "pnpm"], ["add", "ci", "i", "install", "remove", "uninstall", "update", "upgrade", "up"]],
+    decision = "forbidden",
+    match = ["npm ci", "pnpm add example", "yarn upgrade"],
+)
+
+prefix_rule(
+    pattern = [["npm", "yarn", "pnpm"], ["run", "run-script"], ["install", "update", "sync:version", "push-tag"]],
+    decision = "forbidden",
+    match = ["npm run install", "npm run push-tag"],
+    not_match = ["npm run v"],
+)

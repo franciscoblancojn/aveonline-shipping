@@ -125,7 +125,7 @@ function AVSHME_envio_anticipado_confirm($payment_id)
         $order->calculate_totals(false);
         $order->save();
     }
-    $order->update_status('processing', sprintf(__('Envío pagado mediante el pedido #%s. Cobrar únicamente el saldo de productos contraentrega.', 'wc-aveonline-shipping'), $payment->get_order_number()));
+    $order->update_status('processing', sprintf(__('Pago confirmado para el envío #%s. Cobrar únicamente el saldo de productos contraentrega.', 'wc-aveonline-shipping'), $payment->get_order_number()));
 }
 add_action('woocommerce_payment_complete', 'AVSHME_envio_anticipado_confirm', 20);
 add_action('woocommerce_order_status_processing', 'AVSHME_envio_anticipado_confirm', 20);
@@ -192,7 +192,119 @@ function AVSHME_envio_anticipado_admin_order_link($item_id, $item)
     if (!$related || !current_user_can('edit_shop_order', $related->get_id())) {
         return;
     }
-    echo '<div class="view"><p><a class="button button-small" target="_blank" rel="noopener noreferrer" href="' . esc_url($related->get_edit_order_url()) . '">' . esc_html(sprintf(__('Ver pedido #%s', 'wc-aveonline-shipping'), $related->get_order_number())) . '</a></p></div>';
+    $label = $item->get_type() === 'shipping'
+        ? __('Ver envío #%s', 'wc-aveonline-shipping')
+        : __('Ver pedido #%s', 'wc-aveonline-shipping');
+    echo '<div class="view"><p><a class="button button-small" target="_blank" rel="noopener noreferrer" href="' . esc_url($related->get_edit_order_url()) . '">' . esc_html(sprintf($label, $related->get_order_number())) . '</a></p></div>';
 }
 add_action('woocommerce_after_order_itemmeta', 'AVSHME_envio_anticipado_admin_order_link', 10, 2);
 add_action('woocommerce_after_order_fee_item_name', 'AVSHME_envio_anticipado_admin_order_link', 10, 2);
+
+function AVSHME_envio_anticipado_is_payment($order)
+{
+    return $order instanceof WC_Order && (int) $order->get_meta('_AVSHME_envio_parent') > 0;
+}
+
+function AVSHME_envio_anticipado_admin_column($columns)
+{
+    $position = array_search('order_number', array_keys($columns), true);
+    $offset = $position === false ? count($columns) : $position + 1;
+    return array_slice($columns, 0, $offset, true)
+        + array('AVSHME_envio_type' => __('Tipo', 'wc-aveonline-shipping'))
+        + array_slice($columns, $offset, null, true);
+}
+add_filter('manage_edit-shop_order_columns', 'AVSHME_envio_anticipado_admin_column', 20);
+add_filter('woocommerce_shop_order_list_table_columns', 'AVSHME_envio_anticipado_admin_column');
+
+function AVSHME_envio_anticipado_admin_badge($column, $order)
+{
+    if ($column !== 'AVSHME_envio_type') {
+        return;
+    }
+    if (!$order instanceof WC_Order) {
+        $order = wc_get_order($order);
+    }
+    if (AVSHME_envio_anticipado_is_payment($order)) {
+        echo '<mark class="order-status"><span>' . esc_html__('ENVÍO', 'wc-aveonline-shipping') . '</span></mark>';
+    }
+}
+add_action('manage_shop_order_posts_custom_column', 'AVSHME_envio_anticipado_admin_badge', 10, 2);
+add_action('woocommerce_shop_order_list_table_custom_column', 'AVSHME_envio_anticipado_admin_badge', 10, 2);
+
+function AVSHME_envio_anticipado_admin_edit_screen($screen)
+{
+    $action = isset($_GET['action']) && is_string($_GET['action']) ? $_GET['action'] : '';
+    if ($action !== 'edit') {
+        return;
+    }
+    if ($screen->id === 'shop_order' && $screen->base === 'post') {
+        $order_id = isset($_GET['post']) && is_scalar($_GET['post']) ? absint($_GET['post']) : 0;
+    } elseif (in_array($screen->id, array('woocommerce_page_wc-orders', 'admin_page_wc-orders'), true)) {
+        $order_id = isset($_GET['id']) && is_scalar($_GET['id']) ? absint($_GET['id']) : 0;
+    } else {
+        return;
+    }
+    if (!$order_id || !AVSHME_envio_anticipado_is_payment(wc_get_order($order_id)) || !current_user_can('edit_shop_order', $order_id)) {
+        return;
+    }
+
+    $labels = get_post_type_object('shop_order')->labels;
+    $labels->singular_name = __('Envío', 'wc-aveonline-shipping');
+    $labels->edit_item = __('Editar envío', 'wc-aveonline-shipping');
+    add_filter('gettext_woocommerce', 'AVSHME_envio_anticipado_admin_labels', 10, 2);
+}
+add_action('current_screen', 'AVSHME_envio_anticipado_admin_edit_screen');
+
+function AVSHME_envio_anticipado_admin_ajax_labels($order)
+{
+    if (wp_doing_ajax() && AVSHME_envio_anticipado_is_payment($order) && current_user_can('edit_shop_order', $order->get_id())) {
+        add_filter('gettext_woocommerce', 'AVSHME_envio_anticipado_admin_labels', 10, 2);
+    }
+}
+add_action('woocommerce_admin_order_item_headers', 'AVSHME_envio_anticipado_admin_ajax_labels');
+
+function AVSHME_envio_anticipado_admin_labels($translation, $text)
+{
+    switch ($text) {
+        case 'Order':
+            return __('Envío', 'wc-aveonline-shipping');
+        case '%1$s #%2$s details':
+            return __('Detalles del %1$s #%2$s', 'wc-aveonline-shipping');
+        case 'Order #%s details':
+            return __('Detalles del envío #%s', 'wc-aveonline-shipping');
+        case '%s data':
+        case 'Order data':
+            return __('Datos del envío', 'wc-aveonline-shipping');
+        case '%s notes':
+        case 'Order notes':
+            return __('Notas del envío', 'wc-aveonline-shipping');
+        case '%s actions':
+        case 'Order actions':
+            return __('Acciones del envío', 'wc-aveonline-shipping');
+        case '%s attribution':
+        case 'Order attribution':
+            return __('Atribución del envío', 'wc-aveonline-shipping');
+        case 'Order Total':
+            return __('Total del envío', 'wc-aveonline-shipping');
+        case 'Order updated.':
+            return __('Envío actualizado.', 'wc-aveonline-shipping');
+        case 'Order saved.':
+            return __('Envío guardado.', 'wc-aveonline-shipping');
+        case 'Order updated and sent.':
+            return __('Envío actualizado y enviado.', 'wc-aveonline-shipping');
+        case 'Customer notes about the order':
+            return __('Notas del cliente sobre el envío', 'wc-aveonline-shipping');
+        case 'Send order details to customer':
+            return __('Enviar al cliente los detalles del envío', 'wc-aveonline-shipping');
+        case 'Resend new order notification':
+            return __('Reenviar la notificación de nuevo envío', 'wc-aveonline-shipping');
+        case 'This order is no longer editable.':
+            return __('Este envío ya no se puede editar.', 'wc-aveonline-shipping');
+        case 'To edit this order change the status back to "Pending payment"':
+            return __('Para editar el envío, cambia el estado a «Pendiente de pago».', 'wc-aveonline-shipping');
+        case 'Note: Permissions for order items will automatically be granted when the order status changes to processing/completed.':
+            return __('Los permisos para los artículos del envío se conceden automáticamente cuando el estado cambia a «Procesando» o «Completado».', 'wc-aveonline-shipping');
+        default:
+            return $translation;
+    }
+}
