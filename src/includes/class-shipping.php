@@ -295,6 +295,12 @@ function aveonline_shipping_method()
                     'description' => __('El cliente paga solo el envío en un pedido vinculado mediante otra pasarela. Los productos se pagan al recibir. La guía se genera cuando se confirma el pago del envío.', 'wc-aveonline-shipping'),
                     'default' => 'no',
                 ),
+                'contraentregaEnvioMetodos' => array(
+                    'title' => __('Métodos de pago para el envío anticipado', 'wc-aveonline-shipping'),
+                    'type' => 'envio_payment_methods',
+                    'description' => __('Desmarca Todos para elegir los métodos permitidos. Solo se ofrecerán los que estén disponibles al pagar el envío.', 'wc-aveonline-shipping'),
+                    'default' => array('all'),
+                ),
                 'tag_maxTime' => array(
                     'id'    => 'tag',
                     'type'  => 'tag',
@@ -327,6 +333,69 @@ function aveonline_shipping_method()
                     'default' => 'yes',
                 ),
             );
+        }
+        public function generate_envio_payment_methods_html($key, $data)
+        {
+            $field = $this->get_field_key($key);
+            $selected = (array) $this->get_option($key, array('all'));
+            $options = array('all' => __('Todos', 'wc-aveonline-shipping'));
+            foreach (WC()->payment_gateways()->payment_gateways() as $gateway) {
+                if ($gateway->enabled === 'yes' && !in_array($gateway->id, array(AVSHME_PAYMENT_CONTRAENTREGA, 'cod'), true)) {
+                    $options[$gateway->id] = $gateway->get_title() ?: $gateway->get_method_title();
+                }
+            }
+            ob_start();
+        ?>
+            <tr id="avshme-envio-payment-methods-row" valign="top">
+                <th scope="row" class="titledesc"><?php echo esc_html($data['title']); ?></th>
+                <td class="forminp">
+                    <fieldset>
+                        <legend class="screen-reader-text"><?php echo esc_html($data['title']); ?></legend>
+                        <?php foreach ($options as $id => $label) : ?>
+                            <label>
+                                <input type="checkbox" name="<?php echo esc_attr($field); ?>[]" value="<?php echo esc_attr($id); ?>" <?php checked(in_array($id, $selected, true)); ?>>
+                                <?php echo esc_html($label); ?>
+                            </label><br>
+                        <?php endforeach; ?>
+                        <?php echo $this->get_description_html($data); ?>
+                    </fieldset>
+                </td>
+            </tr>
+            <script>
+                (function() {
+                    var checkbox = document.getElementById('<?php echo esc_js($this->get_field_key('contraentregaEnvioAnticipado')); ?>');
+                    var row = document.getElementById('avshme-envio-payment-methods-row');
+                    if (!checkbox || !row) {
+                        return;
+                    }
+                    var all = row.querySelector('input[value="all"]');
+                    var toggle = function() {
+                        row.style.display = checkbox.checked ? '' : 'none';
+                        row.querySelectorAll('input[type="checkbox"]').forEach(function(input) {
+                            if (input !== all) {
+                                input.disabled = all.checked;
+                            }
+                        });
+                    };
+                    checkbox.addEventListener('change', toggle);
+                    all.addEventListener('change', toggle);
+                    toggle();
+                })();
+            </script>
+        <?php
+            return ob_get_clean();
+        }
+        public function validate_envio_payment_methods_field($key, $value)
+        {
+            $selected = is_array($value) ? array_values(array_unique(array_map('sanitize_text_field', array_filter($value, 'is_string')))) : array();
+            if (in_array('all', $selected, true)) {
+                return array('all');
+            }
+            $post_data = $this->get_post_data();
+            if (!$selected && !empty($post_data[$this->get_field_key('contraentregaEnvioAnticipado')])) {
+                throw new Exception(__('Selecciona al menos un método de pago para el envío anticipado o marca Todos.', 'wc-aveonline-shipping'));
+            }
+            return $selected;
         }
         public function isEnvioGratis($price = 0)
         {

@@ -141,6 +141,11 @@ function AVSHME_envio_anticipado_gateways($gateways)
             return array();
         }
         unset($gateways[AVSHME_PAYMENT_CONTRAENTREGA], $gateways['cod']);
+        $settings = get_option('woocommerce_wc_aveonline_shipping_settings', array());
+        $allowed = (array) ($settings['contraentregaEnvioMetodos'] ?? array('all'));
+        if (!in_array('all', $allowed, true)) {
+            $gateways = array_intersect_key($gateways, array_flip($allowed));
+        }
     }
     return $gateways;
 }
