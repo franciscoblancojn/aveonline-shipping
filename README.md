@@ -8,7 +8,7 @@
 
 **Tested up to:** 6.7
 
-**Version:** 4.10.0
+**Version:** 4.11.0
 
 **License:** GPLv2 or later
 
