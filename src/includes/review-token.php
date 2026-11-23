@@ -120,6 +120,10 @@ function AVSHME_review_page()
                         <p class="description">Enviar el token en la cabecera <code>X-Avshme-Token</code>. Parámetro opcional <code>type</code> para filtrar (ej. <code>MULTIAGENTE_RESOLVE</code>).</p>
                         <code><?= esc_html(rest_url('aveonline/v1/review/order/')) ?>&lt;id&gt;</code>
                         <p class="description">Datos de envío guardados en un pedido: tramas enviadas y recibidas al cotizar y al generar la guía.</p>
+                        <code><?= esc_html(rest_url('aveonline/v1/review/orders')) ?></code>
+                        <p class="description">Últimos pedidos enviados con Aveonline (estado, guía y si tienen tramas). Parámetros opcionales <code>per_page</code> (máx. 50), <code>page</code>, <code>status</code> y <code>aveonline=0</code> para incluir todos.</p>
+                        <code><?= esc_html(rest_url('aveonline/v1/review/info')) ?></code>
+                        <p class="description">Versión del plugin y vencimiento del token (para comprobar la conexión).</p>
                     </td>
                 </tr>
             </table>
@@ -343,6 +347,139 @@ function AVSHME_review_order(WP_REST_Request $request)
     return AVSHME_review_nocache($response);
 }
 
+function AVSHME_review_info(WP_REST_Request $request)
+{
+    $data = AVSHME_review_get();
+    $log = AVSHME_get_log_aveonline();
+    $response = new WP_REST_Response(array(
+        'site'        => home_url(),
+        'name'        => get_bloginfo('name'),
+        'version'     => AVSHME_get_version(),
+        'wordpress'   => get_bloginfo('version'),
+        'woocommerce' => defined('WC_VERSION') ? WC_VERSION : '',
+        'now'         => time(),
+        'expires'     => (int) $data['expires'],
+        'minutes'     => (int) $data['minutes'],
+        'types'       => array_map('count', $log),
+        'routes'      => array('info', 'log', 'orders', 'order/<id>'),
+    ));
+    return AVSHME_review_nocache($response);
+}
+
+function AVSHME_review_order_meta($order, $key)
+{
+    $value = $order->get_meta($key, true);
+    if ($value === '' || $value === null) {
+        $value = get_post_meta($order->get_id(), $key, true);
+    }
+    return $value;
+}
+
+function AVSHME_review_order_summary($order)
+{
+    $shipping = null;
+    $cotizacion = false;
+    foreach ($order->get_items('shipping') as $item) {
+        if ($shipping === null || $item->get_method_id() === 'wc_aveonline_shipping') {
+            $shipping = $item;
+        }
+        if ($item->get_meta(AVSHME_TRAMA_COTIZACION, true)) {
+            $cotizacion = true;
+        }
+    }
+    $guia = AVSHME_review_order_meta($order, 'guias_rotulos');
+    if (is_string($guia)) {
+        $guia = AVSHME_review_decode($guia);
+    }
+    if (is_object($guia)) {
+        $guia = json_decode(wp_json_encode($guia), true);
+    }
+    return array(
+        'id'         => $order->get_id(),
+        'number'     => $order->get_order_number(),
+        'status'     => $order->get_status(),
+        'created'    => $order->get_date_created() ? $order->get_date_created()->date('Y-m-d H:i:s') : '',
+        'total'      => $order->get_total(),
+        'currency'   => $order->get_currency(),
+        'payment'    => $order->get_payment_method(),
+        'city'       => $order->get_shipping_city() ? $order->get_shipping_city() : $order->get_billing_city(),
+        'state'      => $order->get_shipping_state() ? $order->get_shipping_state() : $order->get_billing_state(),
+        'shipping'   => $shipping ? array(
+            'method_id' => $shipping->get_method_id(),
+            'name'      => $shipping->get_name(),
+            'total'     => $shipping->get_total(),
+        ) : null,
+        'aveonline'  => $shipping ? $shipping->get_method_id() === 'wc_aveonline_shipping' : false,
+        'tramas'     => array(
+            'cotizacion' => $cotizacion,
+            'guia'       => (bool) AVSHME_review_order_meta($order, AVSHME_TRAMA_GUIA),
+        ),
+        'guia'       => is_array($guia) ? array(
+            'numguia' => isset($guia['numguia']) ? $guia['numguia'] : '',
+            'mensaje' => isset($guia['mensaje']) ? $guia['mensaje'] : '',
+        ) : null,
+    );
+}
+
+function AVSHME_review_orders(WP_REST_Request $request)
+{
+    $per_page = min(50, max(1, (int) $request->get_param('per_page')));
+    $page = max(1, (int) $request->get_param('page'));
+    $only = $request->get_param('aveonline') !== '0';
+    $args = array(
+        'limit'   => $only ? 50 : $per_page,
+        'orderby' => 'date',
+        'order'   => 'DESC',
+        'type'    => 'shop_order',
+        'return'  => 'objects',
+    );
+    $status = sanitize_key((string) $request->get_param('status'));
+    if ($status !== '') {
+        $args['status'] = array($status);
+    }
+    $orders = array();
+    $skip = ($page - 1) * $per_page;
+    $scanned = 0;
+    $batch = $only ? 1 : $page;
+    while (count($orders) < $per_page && $scanned < 500) {
+        $found = wc_get_orders(array_merge($args, array('paged' => $batch)));
+        if (empty($found)) {
+            break;
+        }
+        foreach ($found as $order) {
+            $scanned++;
+            $summary = AVSHME_review_order_summary($order);
+            if ($only && !$summary['aveonline']) {
+                continue;
+            }
+            if ($only && $skip > 0) {
+                $skip--;
+                continue;
+            }
+            $orders[] = $summary;
+            if (count($orders) >= $per_page) {
+                break;
+            }
+        }
+        if (!$only || count($found) < $args['limit']) {
+            break;
+        }
+        $batch++;
+    }
+    $data = AVSHME_review_get();
+    $response = new WP_REST_Response(array(
+        'site'     => home_url(),
+        'version'  => AVSHME_get_version(),
+        'now'      => time(),
+        'expires'  => (int) $data['expires'],
+        'page'     => $page,
+        'per_page' => $per_page,
+        'scanned'  => $scanned,
+        'orders'   => AVSHME_review_redact($orders),
+    ));
+    return AVSHME_review_nocache($response);
+}
+
 function AVSHME_get_log_aveonline()
 {
     $log = \franciscoblancojn\wordpress_utils\FWUSystemLog::get(AVSHME_KEY);
@@ -351,6 +488,37 @@ function AVSHME_get_log_aveonline()
 
 function AVSHME_review_routes()
 {
+    register_rest_route('aveonline/v1', '/review/info', array(
+        'methods'             => 'GET',
+        'callback'            => 'AVSHME_review_info',
+        'permission_callback' => 'AVSHME_review_permission',
+    ));
+    register_rest_route('aveonline/v1', '/review/orders', array(
+        'methods'             => 'GET',
+        'callback'            => 'AVSHME_review_orders',
+        'permission_callback' => 'AVSHME_review_permission',
+        'args'                => array(
+            'per_page'  => array(
+                'type'              => 'integer',
+                'default'           => 20,
+                'sanitize_callback' => 'absint',
+            ),
+            'page'      => array(
+                'type'              => 'integer',
+                'default'           => 1,
+                'sanitize_callback' => 'absint',
+            ),
+            'status'    => array(
+                'type'              => 'string',
+                'sanitize_callback' => 'sanitize_key',
+            ),
+            'aveonline' => array(
+                'type'              => 'string',
+                'default'           => '1',
+                'sanitize_callback' => 'sanitize_text_field',
+            ),
+        ),
+    ));
     register_rest_route('aveonline/v1', '/review/log', array(
         'methods'             => 'GET',
         'callback'            => 'AVSHME_review_log',
