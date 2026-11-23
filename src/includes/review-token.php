@@ -119,7 +119,7 @@ function AVSHME_review_page()
                         <code><?= esc_html(AVSHME_review_endpoint_url()) ?></code>
                         <p class="description">Enviar el token en la cabecera <code>X-Avshme-Token</code>. Parámetro opcional <code>type</code> para filtrar (ej. <code>MULTIAGENTE_RESOLVE</code>).</p>
                         <code><?= esc_html(rest_url('aveonline/v1/review/order/')) ?>&lt;id&gt;</code>
-                        <p class="description">Datos de envío guardados en un pedido: cotización usada (<code>request</code>), solicitud y respuesta de la guía.</p>
+                        <p class="description">Datos de envío guardados en un pedido: tramas enviadas y recibidas al cotizar y al generar la guía.</p>
                     </td>
                 </tr>
             </table>
@@ -302,10 +302,15 @@ function AVSHME_review_order(WP_REST_Request $request)
         return new WP_Error('avshme_review_order', 'Pedido no encontrado.', array('status' => 404));
     }
     $shipping = array();
+    $cotizacion = array();
     foreach ($order->get_items('shipping') as $item) {
         $metas = array();
         foreach ($item->get_meta_data() as $meta) {
             $data = $meta->get_data();
+            if ($data['key'] === AVSHME_TRAMA_COTIZACION) {
+                $cotizacion[] = AVSHME_review_decode($data['value']);
+                continue;
+            }
             $metas[$data['key']] = AVSHME_review_decode($data['value']);
         }
         $shipping[] = array(
@@ -326,6 +331,10 @@ function AVSHME_review_order(WP_REST_Request $request)
         'status'                       => $order->get_status(),
         'created'                      => $order->get_date_created() ? $order->get_date_created()->date('Y-m-d H:i:s') : '',
         'payment_method'               => $order->get_payment_method(),
+        'tramas'                       => array(
+            'cotizacion' => AVSHME_review_redact(AVSHME_review_strip_files($cotizacion)),
+            'guia'       => AVSHME_review_redact(AVSHME_review_order_metas($order, AVSHME_TRAMA_GUIA)),
+        ),
         'shipping'                     => AVSHME_review_redact($shipping),
         'AVSHME_generate_guia_request' => AVSHME_review_redact(AVSHME_review_order_metas($order, 'AVSHME_generate_guia_request')),
         'AVSHME_generate_guia'         => AVSHME_review_redact(AVSHME_review_order_metas($order, 'AVSHME_generate_guia')),

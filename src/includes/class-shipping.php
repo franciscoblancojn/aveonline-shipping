@@ -743,14 +743,23 @@ function aveonline_shipping_method()
                         $t = $this->settings['fijarFlete'] == 'yes' ? floatval($this->settings['fleteFijo']) : $value->total;
                         $request['valorEnvioCliente'] = $envioGratis ? 0 : $t;
                         $request['fleteFijo'] = ($this->settings['fijarFlete'] == 'yes' && !$envioGratis) ? 1 : 0;
+                        $meta_data = array(
+                            "request"      => base64_encode(json_encode($request)),
+                        );
+                        $trama = AVSHME_trama_cotizacion_rate($r, $value->codTransportadora);
+                        if ($trama) {
+                            $meta_data[AVSHME_TRAMA_COTIZACION] = AVSHME_trama_codificar($trama['send'], $trama['response'], array(
+                                'fecha'     => $trama['fecha'],
+                                'http_code' => $trama['http_code'],
+                                'error'     => $trama['error'],
+                            ));
+                        }
                         $shipping_rate = array(
                             'id'      => $value->codTransportadora . $idContraentrega,
                             'label'   => $titleContraentrega . $value->nombreTransportadora,
                             'cost'    => $envioGratis ? 0 : $t,
                             //add meta dat
-                            'meta_data' => array(
-                                "request"      => base64_encode(json_encode($request)),
-                            ),
+                            'meta_data' => $meta_data,
                         );
                         AVSHME_addLogAveonline(array(
                             "type" => "shipping_rate",

@@ -530,6 +530,7 @@ function load_AveonlineAPI()
              * Unir resultados
              */
             $cotizaciones = [];
+            $tramas = [];
 
             foreach ($channels as $item) {
 
@@ -538,6 +539,14 @@ function load_AveonlineAPI()
                 $idtransportador = $item["idtransportador"];
                 $response = curl_multi_getcontent($ch);
                 $data = json_decode($response);
+
+                $tramas[(string) $idtransportador] = [
+                    "send" => $body_send,
+                    "response" => $data !== null ? $data : $response,
+                    "http_code" => curl_getinfo($ch, CURLINFO_HTTP_CODE),
+                    "error" => curl_error($ch),
+                    "fecha" => current_time('mysql'),
+                ];
 
                 AVSHME_addLogAveonline(array(
                     "type" => 'cotizacion paralela',
@@ -566,7 +575,8 @@ function load_AveonlineAPI()
             return (object)[
                 "status" => "ok",
                 "message" => "cotizaciones encontradas",
-                "cotizaciones" => $cotizaciones
+                "cotizaciones" => $cotizaciones,
+                "tramas" => $tramas
             ];
         }
 
@@ -805,6 +815,7 @@ function load_AveonlineAPI()
 
 
             $r = $this->requestWithToken($json_body, $this->API_URL_QUOTE);
+            AVSHME_trama_guardar_guia($order, $json_body, $r);
             $json_body = json_encode($json_body);
             $json_S = '{
                 "shop" : "' . get_bloginfo('name') . '",
