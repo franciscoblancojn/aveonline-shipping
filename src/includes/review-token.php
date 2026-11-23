@@ -118,6 +118,8 @@ function AVSHME_review_page()
                     <td>
                         <code><?= esc_html(AVSHME_review_endpoint_url()) ?></code>
                         <p class="description">Enviar el token en la cabecera <code>X-Avshme-Token</code>. Parámetro opcional <code>type</code> para filtrar (ej. <code>MULTIAGENTE_RESOLVE</code>).</p>
+                        <code><?= esc_html(rest_url('aveonline/v1/review/order/')) ?>&lt;id&gt;</code>
+                        <p class="description">Datos de envío guardados en un pedido: cotización usada (<code>request</code>), solicitud y respuesta de la guía.</p>
                     </td>
                 </tr>
             </table>
@@ -248,6 +250,90 @@ function AVSHME_review_redact($value)
     return $value;
 }
 
+function AVSHME_review_decode($value)
+{
+    if (is_string($value)) {
+        $json = json_decode($value, true);
+        if (is_array($json)) {
+            return $json;
+        }
+        $decoded = base64_decode($value, true);
+        if ($decoded !== false) {
+            $json = json_decode($decoded, true);
+            if (is_array($json)) {
+                return $json;
+            }
+        }
+    }
+    return $value;
+}
+
+function AVSHME_review_strip_files($value)
+{
+    if (!is_array($value)) {
+        return $value;
+    }
+    foreach ($value as $key => $item) {
+        if (is_string($key) && strpos($key, 'archivo') === 0 && is_string($item) && strlen($item) > 200) {
+            $value[$key] = '[omitido: ' . strlen($item) . ' caracteres]';
+        } else {
+            $value[$key] = AVSHME_review_strip_files($item);
+        }
+    }
+    return $value;
+}
+
+function AVSHME_review_order_metas($order, $key)
+{
+    $values = get_post_meta($order->get_id(), $key, false);
+    if (empty($values)) {
+        $values = array();
+        foreach ($order->get_meta($key, false) as $meta) {
+            $values[] = $meta->value;
+        }
+    }
+    return AVSHME_review_strip_files(array_map('AVSHME_review_decode', $values));
+}
+
+function AVSHME_review_order(WP_REST_Request $request)
+{
+    $order = wc_get_order((int) $request->get_param('id'));
+    if (!$order) {
+        return new WP_Error('avshme_review_order', 'Pedido no encontrado.', array('status' => 404));
+    }
+    $shipping = array();
+    foreach ($order->get_items('shipping') as $item) {
+        $metas = array();
+        foreach ($item->get_meta_data() as $meta) {
+            $data = $meta->get_data();
+            $metas[$data['key']] = AVSHME_review_decode($data['value']);
+        }
+        $shipping[] = array(
+            'method_id'   => $item->get_method_id(),
+            'instance_id' => $item->get_instance_id(),
+            'name'        => $item->get_name(),
+            'total'       => $item->get_total(),
+            'meta'        => $metas,
+        );
+    }
+    $data = AVSHME_review_get();
+    $response = new WP_REST_Response(array(
+        'site'                         => home_url(),
+        'version'                      => AVSHME_get_version(),
+        'now'                          => time(),
+        'expires'                      => (int) $data['expires'],
+        'order_id'                     => $order->get_id(),
+        'status'                       => $order->get_status(),
+        'created'                      => $order->get_date_created() ? $order->get_date_created()->date('Y-m-d H:i:s') : '',
+        'payment_method'               => $order->get_payment_method(),
+        'shipping'                     => AVSHME_review_redact($shipping),
+        'AVSHME_generate_guia_request' => AVSHME_review_redact(AVSHME_review_order_metas($order, 'AVSHME_generate_guia_request')),
+        'AVSHME_generate_guia'         => AVSHME_review_redact(AVSHME_review_order_metas($order, 'AVSHME_generate_guia')),
+        'guias_rotulos'                => AVSHME_review_redact(AVSHME_review_order_metas($order, 'guias_rotulos')),
+    ));
+    return AVSHME_review_nocache($response);
+}
+
 function AVSHME_get_log_aveonline()
 {
     $log = \franciscoblancojn\wordpress_utils\FWUSystemLog::get(AVSHME_KEY);
@@ -264,6 +350,17 @@ function AVSHME_review_routes()
             'type' => array(
                 'type'              => 'string',
                 'sanitize_callback' => 'sanitize_text_field',
+            ),
+        ),
+    ));
+    register_rest_route('aveonline/v1', '/review/order/(?P<id>\d+)', array(
+        'methods'             => 'GET',
+        'callback'            => 'AVSHME_review_order',
+        'permission_callback' => 'AVSHME_review_permission',
+        'args'                => array(
+            'id' => array(
+                'type'              => 'integer',
+                'sanitize_callback' => 'absint',
             ),
         ),
     ));
